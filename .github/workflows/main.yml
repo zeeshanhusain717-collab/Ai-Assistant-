@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 20
-                  versionName "20.0"
+                  versionCode 25
+                  versionName "25.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -102,30 +102,34 @@ jobs:
           </resources>
           EOF
 
+          # 🔥 Stunning 3D Vector App Icon
           cat > app/src/main/res/drawable/ic_app_icon.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
               android:height="108dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path android:fillColor="#1E3A8A" android:pathData="M4,2h16c1.1,0 2,0.9 2,2v16c0,1.1 -0.9,2 -2,2H4c-1.1,0 -2,-0.9 -2,-2V4c0,-1.1 0.9,-2 2,-2z"/>
-              <path android:fillColor="#3B82F6" android:pathData="M6,4h12c1.1,0 2,0.9 2,2v12c0,1.1 -0.9,2 -2,2H6c-1.1,0 -2,-0.9 -2,-2V6c0,-1.1 0.9,-2 2,-2z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M6.62,10.79c1.44,2.83 3.76,5.14 6.59,6.59l2.2,-2.2c0.27,-0.27 0.67,-0.36 1.02,-0.24 1.12,0.37 2.33,0.57 3.57,0.57 0.55,0 1,0.45 1,1V20c0,0.55 -0.45,1 -1,1 -9.39,0 -17,-7.61 -17,-17 0,-0.55 0.45,-1 1,-1h3.5c0.55,0 1,0.45 1,1 0,1.25 0.2,2.45 0.57,3.57 0.11,0.35 0.03,0.74 -0.25,1.02l-2.2,2.2z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M15.5,8.5C16.3,9.3 16.8,10.4 16.8,11.5s-0.5,2.2 -1.3,3l1.1,1.1c1.2,-1.4 1.9,-3.1 1.9,-5.1s-0.7,-3.7 -1.9,-5.1l-1.1,1.1z"/>
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path android:fillColor="#0F172A" android:pathData="M0,0h108v108h-108z"/>
+              <path android:fillColor="#2563EB" android:pathData="M24,24h60c6.6,0 12,5.4 12,12v36c0,6.6 -5.4,12 -12,12H24c-6.6,0 -12,-5.4 -12,-12V36c0,-6.6 5.4,-12 12,-12z"/>
+              <path android:fillColor="#60A5FA" android:pathData="M32,36h44c2.2,0 4,1.8 4,4v28c0,2.2 -1.8,4 -4,4H32c-2.2,0 -4,-1.8 -4,-4V40c0,-2.2 1.8,-4 4,-4z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M54,44c-3.3,0 -6,2.7 -6,6v10c0,3.3 2.7,6 6,6s6,-2.7 6,-6V50c0,-3.3 -2.7,-6 -6,-6z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M42,56c0,6.6 5.4,12 12,12s12,-5.4 12,-12h4c0,8.8 -7.2,16 -16,16s-16,-7.2 -16,-16h4z"/>
           </vector>
           EOF
 
+          # 🔥 VIP 3D Normal Mic Button
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="110dp" android:startColor="#60A5FA" android:centerColor="#2563EB" android:endColor="#1E3A8A" />
-              <stroke android:width="5dp" android:color="#93C5FD" />
+              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#93C5FD" android:centerColor="#2563EB" android:endColor="#0F172A" />
+              <stroke android:width="6dp" android:color="#60A5FA" />
           </shape>
           EOF
 
+          # 🔥 VIP 3D Active Green Mic Button
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="110dp" android:startColor="#4ADE80" android:centerColor="#16A34A" android:endColor="#14532D" />
-              <stroke android:width="5dp" android:color="#86EFAC" />
+              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#86EFAC" android:centerColor="#16A34A" android:endColor="#064E3B" />
+              <stroke android:width="6dp" android:color="#4ADE80" />
           </shape>
           EOF
 
@@ -137,24 +141,24 @@ jobs:
               android:orientation="vertical"
               android:background="#F8FAFC">
 
-              <!-- Top Header Bar -->
+              <!-- Top VIP Header Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
-                  android:layout_height="70dp"
-                  android:background="#1E3A8A"
+                  android:layout_height="75dp"
+                  android:background="#0F172A"
                   android:gravity="center_vertical"
-                  android:paddingHorizontal="20dp"
-                  android:elevation="6dp">
+                  android:paddingHorizontal="24dp"
+                  android:elevation="8dp">
                   <TextView
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="Zeeshan Assistant Call"
+                      android:text="👑 Zeeshan Assistant Call"
                       android:textColor="#FFFFFF"
                       android:textSize="20sp"
                       android:textStyle="bold" />
               </LinearLayout>
 
-              <!-- Center Single-Screen Layout -->
+              <!-- Center VIP Layout -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
@@ -167,34 +171,34 @@ jobs:
                       android:id="@+id/statusTitleTv"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="Zeeshan Assistant is Ready"
-                      android:textSize="18sp"
-                      android:textColor="#1E3A8A"
+                      android:text="Assistant is Ready"
+                      android:textSize="20sp"
+                      android:textColor="#0F172A"
                       android:textStyle="bold"
                       android:gravity="center"
-                      android:layout_marginBottom="12dp" />
+                      android:layout_marginBottom="10dp" />
 
                   <TextView
                       android:id="@+id/statusDescTv"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="Tap the mic and say 'Call [Name]'"
+                      android:text="Tap mic and say 'Call [Name]'"
                       android:textSize="15sp"
                       android:textColor="#64748B"
                       android:gravity="center"
-                      android:layout_marginBottom="40dp" />
+                      android:layout_marginBottom="45dp" />
 
-                  <!-- Centered Big Mic Button -->
+                  <!-- Centered 3D VIP Mic Button -->
                   <ImageButton
                       android:id="@+id/btnMic"
-                      android:layout_width="160dp"
-                      android:layout_height="160dp"
+                      android:layout_width="170dp"
+                      android:layout_height="170dp"
                       android:background="@drawable/circle_mic_normal"
                       android:src="@android:drawable/ic_btn_speak_now"
                       android:scaleType="centerInside"
-                      android:elevation="18dp"
-                      android:contentDescription="Assistant Mic"
-                      android:layout_marginBottom="40dp" />
+                      android:elevation="20dp"
+                      android:contentDescription="VIP Mic"
+                      android:layout_marginBottom="45dp" />
 
                   <!-- Audio Wave Animation Indicator -->
                   <TextView
@@ -208,19 +212,19 @@ jobs:
 
               </LinearLayout>
 
-              <!-- Bottom Footer Bar -->
+              <!-- Bottom VIP Footer Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="65dp"
-                  android:background="#1E3A8A"
+                  android:background="#0F172A"
                   android:gravity="center"
                   android:elevation="8dp">
                   <TextView
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="100% Offline-First Voice Assistant"
-                      android:textColor="#93C5FD"
-                      android:textSize="13sp"
+                      android:text="⚡ 100% Offline VIP Voice Engine ⚡"
+                      android:textColor="#38BDF8"
+                      android:textSize="14sp"
                       android:textStyle="bold" />
               </LinearLayout>
 
@@ -254,7 +258,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with Single-Screen VIP Engine
+      - name: Write Pure Kotlin MainActivity.kt with VIP 3D Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -288,7 +292,7 @@ jobs:
               private lateinit var statusDescTv: TextView
               private lateinit var waveTv: TextView
 
-              private lateinit var speechRecognizer: SpeechRecognizer
+              private var speechRecognizer: SpeechRecognizer? = null
               private lateinit var textToSpeech: TextToSpeech
 
               val allContacts = mutableListOf<ContactItem>()
@@ -374,8 +378,12 @@ jobs:
 
               private fun setupSpeechRecognizer() {
                   if (SpeechRecognizer.isRecognitionAvailable(this)) {
+                      try {
+                          speechRecognizer?.destroy()
+                      } catch (e: Exception) {}
+
                       speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
-                      speechRecognizer.setRecognitionListener(object : RecognitionListener {
+                      speechRecognizer?.setRecognitionListener(object : RecognitionListener {
                           override fun onReadyForSpeech(params: Bundle?) {
                               statusTitleTv.text = "Listening..."
                               statusDescTv.text = "Speak contact name with 'Call'..."
@@ -386,19 +394,22 @@ jobs:
                           override fun onBufferReceived(buffer: ByteArray?) {}
                           override fun onEndOfSpeech() {
                               statusTitleTv.text = "Processing..."
-                              statusDescTv.text = "Searching contacts offline..."
+                              statusDescTv.text = "Matching contact offline..."
                           }
                           override fun onError(error: Int) {
                               resetMicState()
-                              statusTitleTv.text = "Voice not detected"
+                              statusTitleTv.text = "Assistant is Ready"
                               statusDescTv.text = "Tap mic to try again."
-                              Toast.makeText(this@MainActivity, "Voice not detected. Try again.", Toast.LENGTH_SHORT).show()
+                              Toast.makeText(this@MainActivity, "Listening error ($error). Try again.", Toast.LENGTH_SHORT).show()
                           }
                           override fun onResults(results: Bundle?) {
                               resetMicState()
                               val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                               if (!matches.isNullOrEmpty()) {
                                   processCommand(matches[0])
+                              } else {
+                                  statusTitleTv.text = "No speech heard"
+                                  statusDescTv.text = "Tap mic and speak clearly."
                               }
                           }
                           override fun onPartialResults(partialResults: Bundle?) {}
@@ -410,13 +421,18 @@ jobs:
               private fun startListeningProcess() {
                   if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                       btnMic.setBackgroundResource(R.drawable.circle_mic_active)
+                      
+                      if (speechRecognizer == null) {
+                          setupSpeechRecognizer()
+                      }
+
                       val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                           putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                          putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-                          putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+                          putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN")
+                          putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
                       }
                       try {
-                          speechRecognizer.startListening(intent)
+                          speechRecognizer?.startListening(intent)
                       } catch (e: Exception) {
                           resetMicState()
                           Toast.makeText(this, "Microphone busy. Try again.", Toast.LENGTH_SHORT).show()
@@ -497,14 +513,14 @@ jobs:
 
               override fun onInit(status: Int) {
                   if (status == TextToSpeech.SUCCESS) {
-                      textToSpeech.language = Locale("en", "US")
+                      textToSpeech.language = Locale("en", "IN")
                   }
               }
 
               override fun onDestroy() {
-                  if (::speechRecognizer.isInitialized) {
-                      speechRecognizer.destroy()
-                  }
+                  try {
+                      speechRecognizer?.destroy()
+                  } catch (e: Exception) {}
                   if (::textToSpeech.isInitialized) {
                       textToSpeech.stop()
                       textToSpeech.shutdown()
