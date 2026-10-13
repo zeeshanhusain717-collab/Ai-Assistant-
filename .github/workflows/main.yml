@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 18
-                  versionName "18.0"
+                  versionCode 20
+                  versionName "20.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -88,7 +88,6 @@ jobs:
               implementation "androidx.core:core-ktx:1.13.1"
               implementation "androidx.appcompat:appcompat:1.7.0"
               implementation "com.google.android.material:material:1.12.0"
-              implementation "androidx.viewpager2:viewpager2:1.1.0"
           }
           EOF
 
@@ -118,23 +117,15 @@ jobs:
 
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="100dp" android:startColor="#60A5FA" android:centerColor="#2563EB" android:endColor="#1E3A8A" />
-              <stroke android:width="4dp" android:color="#93C5FD" />
+              <gradient android:type="radial" android:gradientRadius="110dp" android:startColor="#60A5FA" android:centerColor="#2563EB" android:endColor="#1E3A8A" />
+              <stroke android:width="5dp" android:color="#93C5FD" />
           </shape>
           EOF
 
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="100dp" android:startColor="#4ADE80" android:centerColor="#16A34A" android:endColor="#14532D" />
-              <stroke android:width="4dp" android:color="#86EFAC" />
-          </shape>
-          EOF
-
-          cat > app/src/main/res/drawable/list_background.xml <<'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="#FFFFFF" />
-              <corners android:radius="16dp" />
-              <stroke android:width="1dp" android:color="#E2E8F0" />
+              <gradient android:type="radial" android:gradientRadius="110dp" android:startColor="#4ADE80" android:centerColor="#16A34A" android:endColor="#14532D" />
+              <stroke android:width="5dp" android:color="#86EFAC" />
           </shape>
           EOF
 
@@ -152,7 +143,7 @@ jobs:
                   android:layout_height="70dp"
                   android:background="#1E3A8A"
                   android:gravity="center_vertical"
-                  android:paddingHorizontal="16dp"
+                  android:paddingHorizontal="20dp"
                   android:elevation="6dp">
                   <TextView
                       android:layout_width="wrap_content"
@@ -163,49 +154,74 @@ jobs:
                       android:textStyle="bold" />
               </LinearLayout>
 
-              <!-- ViewPager2 for Screens -->
-              <androidx.viewpager2.widget.ViewPager2
-                  android:id="@+id/viewPager"
-                  android:layout_width="match_parent"
-                  android:layout_height="0dp"
-                  android:layout_weight="1" />
-
-              <!-- Bottom Navigation Bar -->
+              <!-- Center Single-Screen Layout -->
               <LinearLayout
                   android:layout_width="match_parent"
-                  android:layout_height="80dp"
-                  android:background="#1E3A8A"
-                  android:orientation="horizontal"
-                  android:elevation="10dp"
+                  android:layout_height="0dp"
+                  android:layout_weight="1"
+                  android:orientation="vertical"
                   android:gravity="center"
-                  android:paddingHorizontal="16dp">
+                  android:padding="24dp">
 
-                  <Button
-                      android:id="@+id/tabAssistant"
-                      android:layout_width="0dp"
-                      android:layout_height="50dp"
-                      android:layout_weight="1"
-                      android:text="Z ASSISTANT"
-                      android:textSize="13sp"
+                  <TextView
+                      android:id="@+id/statusTitleTv"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="Zeeshan Assistant is Ready"
+                      android:textSize="18sp"
+                      android:textColor="#1E3A8A"
                       android:textStyle="bold"
-                      android:backgroundTint="#2563EB"
-                      android:textColor="#FFFFFF" />
+                      android:gravity="center"
+                      android:layout_marginBottom="12dp" />
 
-                  <View
-                      android:layout_width="16dp"
-                      android:layout_height="match_parent" />
+                  <TextView
+                      android:id="@+id/statusDescTv"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="Tap the mic and say 'Call [Name]'"
+                      android:textSize="15sp"
+                      android:textColor="#64748B"
+                      android:gravity="center"
+                      android:layout_marginBottom="40dp" />
 
-                  <Button
-                      android:id="@+id/tabContacts"
-                      android:layout_width="0dp"
-                      android:layout_height="50dp"
-                      android:layout_weight="1"
-                      android:text="CONTACTS"
+                  <!-- Centered Big Mic Button -->
+                  <ImageButton
+                      android:id="@+id/btnMic"
+                      android:layout_width="160dp"
+                      android:layout_height="160dp"
+                      android:background="@drawable/circle_mic_normal"
+                      android:src="@android:drawable/ic_btn_speak_now"
+                      android:scaleType="centerInside"
+                      android:elevation="18dp"
+                      android:contentDescription="Assistant Mic"
+                      android:layout_marginBottom="40dp" />
+
+                  <!-- Audio Wave Animation Indicator -->
+                  <TextView
+                      android:id="@+id/waveTv"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text=" ıllılıl llılıll "
+                      android:textSize="32sp"
+                      android:textColor="#2563EB"
+                      android:gravity="center" />
+
+              </LinearLayout>
+
+              <!-- Bottom Footer Bar -->
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="65dp"
+                  android:background="#1E3A8A"
+                  android:gravity="center"
+                  android:elevation="8dp">
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="100% Offline-First Voice Assistant"
+                      android:textColor="#93C5FD"
                       android:textSize="13sp"
-                      android:textStyle="bold"
-                      android:backgroundTint="#1E3A8A"
-                      android:textColor="#FFFFFF" />
-
+                      android:textStyle="bold" />
               </LinearLayout>
 
           </LinearLayout>
@@ -238,86 +254,67 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with Android Native Intent Voice Engine
+      - name: Write Pure Kotlin MainActivity.kt with Single-Screen VIP Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
 
           import android.Manifest
-          import android.app.Activity
           import android.content.Intent
           import android.content.pm.PackageManager
           import android.database.Cursor
-          import android.graphics.Color
           import android.net.Uri
           import android.os.Bundle
           import android.provider.CallLog
           import android.provider.ContactsContract
+          import android.speech.RecognitionListener
           import android.speech.RecognizerIntent
+          import android.speech.SpeechRecognizer
           import android.speech.tts.TextToSpeech
-          import android.view.Gravity
-          import android.view.View
-          import android.view.ViewGroup
-          import android.widget.*
+          import android.widget.ImageButton
+          import android.widget.TextView
+          import android.widget.Toast
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
-          import androidx.viewpager2.widget.ViewPager2
           import java.util.*
 
           data class ContactItem(val name: String, val phone: String)
 
           class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-              private lateinit var viewPager: ViewPager2
-              private lateinit var tabAssistant: Button
-              private lateinit var tabContacts: Button
+              private lateinit var btnMic: ImageButton
+              private lateinit var statusTitleTv: TextView
+              private lateinit var statusDescTv: TextView
+              private lateinit var waveTv: TextView
 
+              private lateinit var speechRecognizer: SpeechRecognizer
               private lateinit var textToSpeech: TextToSpeech
 
               val allContacts = mutableListOf<ContactItem>()
-              val fullContactsList = ArrayList<String>()
-
-              var assistantStatusText = "Zeeshan Assistant is Ready\nTap the mic to speak..."
 
               companion object {
                   private const val PERMISSION_REQUEST_CODE = 101
-                  private const val VOICE_RECOGNITION_REQUEST_CODE = 202
-                  lateinit var instance: MainActivity
               }
 
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
-                  instance = this
                   setContentView(R.layout.activity_main)
 
-                  viewPager = findViewById(R.id.viewPager)
-                  tabAssistant = findViewById(R.id.tabAssistant)
-                  tabContacts = findViewById(R.id.tabContacts)
+                  btnMic = findViewById(R.id.btnMic)
+                  statusTitleTv = findViewById(R.id.statusTitleTv)
+                  statusDescTv = findViewById(R.id.statusDescTv)
+                  waveTv = findViewById(R.id.waveTv)
 
                   checkPermissions()
                   syncAllData()
 
                   textToSpeech = TextToSpeech(this, this)
+                  setupSpeechRecognizer()
 
-                  val pagerAdapter = ViewPagerAdapter(this)
-                  viewPager.adapter = pagerAdapter
-
-                  viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                      override fun onPageSelected(position: Int) {
-                          super.onPageSelected(position)
-                          if (position == 0) {
-                              tabAssistant.setBackgroundColor(Color.parseColor("#2563EB"))
-                              tabContacts.setBackgroundColor(Color.parseColor("#1E3A8A"))
-                          } else {
-                              tabContacts.setBackgroundColor(Color.parseColor("#2563EB"))
-                              tabAssistant.setBackgroundColor(Color.parseColor("#1E3A8A"))
-                          }
-                      }
-                  })
-
-                  tabAssistant.setOnClickListener { viewPager.currentItem = 0 }
-                  tabContacts.setOnClickListener { viewPager.currentItem = 1 }
+                  btnMic.setOnClickListener {
+                      startListeningProcess()
+                  }
               }
 
               private fun checkPermissions() {
@@ -332,7 +329,6 @@ jobs:
 
               fun syncAllData() {
                   allContacts.clear()
-                  fullContactsList.clear()
 
                   if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                       val cursor: Cursor? = contentResolver.query(
@@ -374,35 +370,65 @@ jobs:
                           logCursor.close()
                       }
                   }
+              }
 
-                  for (contact in allContacts) {
-                      fullContactsList.add("📇 ${contact.name}\n📱 ${contact.phone}")
+              private fun setupSpeechRecognizer() {
+                  if (SpeechRecognizer.isRecognitionAvailable(this)) {
+                      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+                      speechRecognizer.setRecognitionListener(object : RecognitionListener {
+                          override fun onReadyForSpeech(params: Bundle?) {
+                              statusTitleTv.text = "Listening..."
+                              statusDescTv.text = "Speak contact name with 'Call'..."
+                              waveTv.text = " 🌈✨ ıllılıl llılıll ✨🌈 "
+                          }
+                          override fun onBeginningOfSpeech() {}
+                          override fun onRmsChanged(rmsdB: Float) {}
+                          override fun onBufferReceived(buffer: ByteArray?) {}
+                          override fun onEndOfSpeech() {
+                              statusTitleTv.text = "Processing..."
+                              statusDescTv.text = "Searching contacts offline..."
+                          }
+                          override fun onError(error: Int) {
+                              resetMicState()
+                              statusTitleTv.text = "Voice not detected"
+                              statusDescTv.text = "Tap mic to try again."
+                              Toast.makeText(this@MainActivity, "Voice not detected. Try again.", Toast.LENGTH_SHORT).show()
+                          }
+                          override fun onResults(results: Bundle?) {
+                              resetMicState()
+                              val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                              if (!matches.isNullOrEmpty()) {
+                                  processCommand(matches[0])
+                              }
+                          }
+                          override fun onPartialResults(partialResults: Bundle?) {}
+                          override fun onEvent(eventType: Int, params: Bundle?) {}
+                      })
                   }
               }
 
-              fun startNativeVoiceSearch() {
-                  val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                      putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                      putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-                      // 🔥 Force Android Native Offline Search Engine
-                      putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-                      putExtra(RecognizerIntent.EXTRA_PROMPT, "Say 'Call [Name]' to dial...")
-                  }
-                  try {
-                      startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE)
-                  } catch (e: Exception) {
-                      Toast.makeText(this, "Voice search not available on this device.", Toast.LENGTH_SHORT).show()
-                  }
-              }
-
-              override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-                  super.onActivityResult(requestCode, resultCode, data)
-                  if (requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-                      val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                      if (!results.isNullOrEmpty()) {
-                          processCommand(results[0])
+              private fun startListeningProcess() {
+                  if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                      btnMic.setBackgroundResource(R.drawable.circle_mic_active)
+                      val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                          putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                          putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
+                          putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                       }
+                      try {
+                          speechRecognizer.startListening(intent)
+                      } catch (e: Exception) {
+                          resetMicState()
+                          Toast.makeText(this, "Microphone busy. Try again.", Toast.LENGTH_SHORT).show()
+                      }
+                  } else {
+                      checkPermissions()
                   }
+              }
+
+              private fun resetMicState() {
+                  btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
+                  waveTv.text = " ıllılıl llılıll "
               }
 
               private fun processCommand(spokenText: String) {
@@ -413,7 +439,8 @@ jobs:
                   val searchName = lowerText.replace("call", "").trim()
 
                   if (searchName.isEmpty()) {
-                      assistantStatusText = "You said: \"$rawText\"\nSay 'Call [Name]' to dial."
+                      statusTitleTv.text = "You said: \"$rawText\""
+                      statusDescTv.text = "Say 'Call [Name]' to dial."
                       speakOut("You said $rawText")
                       return
                   }
@@ -426,26 +453,30 @@ jobs:
 
                   when {
                       matched.isEmpty() -> {
-                          assistantStatusText = "No contact found for \"$searchName\""
+                          statusTitleTv.text = "No contact found"
+                          statusDescTv.text = "No match for \"$searchName\""
                           speakOut("No contact found.")
                       }
                       matched.size == 1 -> {
                           val target = matched[0]
                           if (hasCallKeyword) {
-                              assistantStatusText = "Calling ${target.name}..."
+                              statusTitleTv.text = "Calling ${target.name}..."
+                              statusDescTv.text = target.phone
                               speakOut("Calling ${target.name}")
                               makePhoneCall(target.phone)
                           } else {
-                              assistantStatusText = "Found: ${target.name}\nSay 'Call ${target.name}' to dial."
+                              statusTitleTv.text = "Found: ${target.name}"
+                              statusDescTv.text = "Say 'Call ${target.name}' to dial."
                               speakOut("Found ${target.name}. Say call to dial.")
                           }
                       }
                       else -> {
-                          assistantStatusText = "Found ${matched.size} contacts for \"$searchName\""
+                          statusTitleTv.text = "Found ${matched.size} contacts"
                           var speechText = "Found ${matched.size} contacts. "
                           matched.forEachIndexed { idx, contact ->
                               speechText += "Number ${idx + 1}: ${contact.name}. "
                           }
+                          statusDescTv.text = speechText
                           speakOut(speechText)
                       }
                   }
@@ -471,92 +502,14 @@ jobs:
               }
 
               override fun onDestroy() {
+                  if (::speechRecognizer.isInitialized) {
+                      speechRecognizer.destroy()
+                  }
                   if (::textToSpeech.isInitialized) {
                       textToSpeech.stop()
                       textToSpeech.shutdown()
                   }
                   super.onDestroy()
-              }
-          }
-
-          class ViewPagerAdapter(activity: AppCompatActivity) : androidx.viewpager2.adapter.FragmentStateAdapter(activity) {
-              override fun getItemCount(): Int = 2
-              override fun createFragment(position: Int): androidx.fragment.app.Fragment {
-                  return if (position == 0) AssistantFragment() else ContactsFragment()
-              }
-          }
-
-          class AssistantFragment : androidx.fragment.app.Fragment() {
-              override fun onCreateView(inflater: android.view.LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-                  val layout = LinearLayout(requireContext()).apply {
-                      orientation = LinearLayout.VERTICAL
-                      gravity = Gravity.CENTER
-                      setPadding(24, 24, 24, 24)
-                      setBackgroundColor(Color.parseColor("#F8FAFC"))
-                  }
-
-                  val statusTv = TextView(requireContext()).apply {
-                      text = "Zeeshan Assistant is Ready\nTap the mic to speak..."
-                      textSize = 16f
-                      setTextColor(Color.parseColor("#1E3A8A"))
-                      gravity = Gravity.CENTER
-                      setPadding(0, 0, 0, 30)
-                  }
-
-                  val btnMic = ImageButton(requireContext()).apply {
-                      layoutParams = LinearLayout.LayoutParams(180, 180).apply { setMargins(0, 0, 0, 30) }
-                      setBackgroundResource(R.drawable.circle_mic_normal)
-                      setImageResource(android.R.drawable.ic_btn_speak_now)
-                      scaleType = ImageView.ScaleType.CENTER_INSIDE
-                      elevation = 16f
-                      contentDescription = "Assistant Mic"
-                  }
-
-                  val waveTv = TextView(requireContext()).apply {
-                      text = " ıllılıl llılıll "
-                      textSize = 28f
-                      setTextColor(Color.parseColor("#2563EB"))
-                      gravity = Gravity.CENTER
-                      setPadding(0, 0, 0, 20)
-                  }
-
-                  btnMic.setOnClickListener {
-                      MainActivity.instance.startNativeVoiceSearch()
-                  }
-
-                  layout.addView(statusTv)
-                  layout.addView(btnMic)
-                  layout.addView(waveTv)
-                  return layout
-              }
-          }
-
-          class ContactsFragment : androidx.fragment.app.Fragment() {
-              override fun onCreateView(inflater: android.view.LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-                  val layout = LinearLayout(requireContext()).apply {
-                      orientation = LinearLayout.VERTICAL
-                      setPadding(20, 20, 20, 20)
-                      setBackgroundColor(Color.parseColor("#F8FAFC"))
-                  }
-
-                  val title = TextView(requireContext()).apply {
-                      text = "📂 All Synced Contacts & Call Logs"
-                      textSize = 18f
-                      setTextColor(Color.parseColor("#1E3A8A"))
-                      setPadding(0, 0, 0, 15)
-                  }
-
-                  val listView = ListView(requireContext()).apply {
-                      layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                      background = ContextCompat.getDrawable(requireContext(), R.drawable.list_background)
-                  }
-
-                  val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, MainActivity.instance.fullContactsList)
-                  listView.adapter = adapter
-
-                  layout.addView(title)
-                  layout.addView(listView)
-                  return layout
               }
           }
           EOF
@@ -569,3 +522,4 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
