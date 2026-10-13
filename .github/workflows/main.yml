@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 15
-                  versionName "15.0"
+                  versionCode 17
+                  versionName "17.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -116,7 +116,6 @@ jobs:
           </vector>
           EOF
 
-          # 🔵 Normal Blue Mic Button (Screen 1 style)
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
               <gradient android:type="radial" android:gradientRadius="100dp" android:startColor="#60A5FA" android:centerColor="#2563EB" android:endColor="#1E3A8A" />
@@ -124,19 +123,10 @@ jobs:
           </shape>
           EOF
 
-          # 🟢 Active Green Mic Button (Screen 2 style)
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
               <gradient android:type="radial" android:gradientRadius="100dp" android:startColor="#4ADE80" android:centerColor="#16A34A" android:endColor="#14532D" />
               <stroke android:width="4dp" android:color="#86EFAC" />
-          </shape>
-          EOF
-
-          cat > app/src/main/res/drawable/card_background.xml <<'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="#FFFFFF" />
-              <corners android:radius="18dp" />
-              <stroke android:width="1.5dp" android:color="#CBD5E1" />
           </shape>
           EOF
 
@@ -156,7 +146,7 @@ jobs:
               android:orientation="vertical"
               android:background="#F8FAFC">
 
-              <!-- Top Header Bar (Matching Image Style) -->
+              <!-- Top Header Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="70dp"
@@ -180,7 +170,7 @@ jobs:
                   android:layout_height="0dp"
                   android:layout_weight="1" />
 
-              <!-- Bottom Navigation Bar (Matching Image Style) -->
+              <!-- Bottom Navigation Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="80dp"
@@ -248,7 +238,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with 100% Offline English/Hinglish Voice Engine
+      - name: Write Pure Kotlin MainActivity.kt with Android Native Offline & Telecom Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -288,7 +278,6 @@ jobs:
               private lateinit var textToSpeech: TextToSpeech
 
               val allContacts = mutableListOf<ContactItem>()
-              val displayList = ArrayList<String>()
               val fullContactsList = ArrayList<String>()
 
               var assistantStatusText = "Zeeshan Assistant is Ready\nTap the mic to speak..."
@@ -392,11 +381,6 @@ jobs:
                   for (contact in allContacts) {
                       fullContactsList.add("📇 ${contact.name}\n📱 ${contact.phone}")
                   }
-
-                  displayList.clear()
-                  for (contact in allContacts.take(15)) {
-                      displayList.add("📞 ${contact.name} (${contact.phone})")
-                  }
               }
 
               private fun setupSpeechRecognizer() {
@@ -416,7 +400,7 @@ jobs:
                               isListeningActive = false
                               val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                               if (!matches.isNullOrEmpty()) {
-                                  processEnglishCommand(matches[0])
+                                  processCommand(matches[0])
                               }
                           }
                           override fun onPartialResults(partialResults: Bundle?) {}
@@ -430,7 +414,7 @@ jobs:
                   val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-                      // 🔥 Force On-Device Offline Processing using Android's native CPU engine
+                      // 🔥 Android Native On-Device Offline Engine Flag
                       putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                   }
                   try {
@@ -440,45 +424,47 @@ jobs:
                   }
               }
 
-              // 🔥 Pure English / Hinglish Fast Local Matching Engine
-              private fun processEnglishCommand(command: String) {
-                  var cleanCommand = command.trim()
-                  // Remove standard trigger words if spoken
-                  val stopWords = listOf("call", "to", "phone", "dial", "number")
-                  for (word in stopWords) {
-                      cleanCommand = cleanCommand.replace(word, "", ignoreCase = true)
-                  }
-                  cleanCommand = cleanCommand.trim()
+              // 🔥 Strict Keyword Engine: Only calls if "call" is spoken, otherwise reads name/status
+              private fun processCommand(spokenText: String) {
+                  val rawText = spokenText.trim()
+                  val lowerText = rawText.lowercase(Locale.ROOT)
 
-                  assistantStatusText = "Searching for \"$cleanCommand\"..."
+                  val hasCallKeyword = lowerText.contains("call")
+                  val searchName = lowerText.replace("call", "").trim()
+
+                  if (searchName.isEmpty()) {
+                      assistantStatusText = "You said: \"$rawText\"\nSay 'Call [Name]' to dial."
+                      speakOut("You said $rawText")
+                      return
+                  }
 
                   val matched = allContacts.filter { contact ->
                       val cName = contact.name.lowercase(Locale.ROOT)
-                      val sCmd = cleanCommand.lowercase(Locale.ROOT)
-                      cName.contains(sCmd) || sCmd.contains(cName) || contact.phone.contains(sCmd) ||
-                      cName.split(" ").any { sCmd.contains(it) && it.length > 1 }
+                      cName.contains(searchName) || searchName.contains(cName) || contact.phone.contains(searchName) ||
+                      cName.split(" ").any { searchName.contains(it) && it.length > 1 }
                   }
 
                   when {
                       matched.isEmpty() -> {
-                          assistantStatusText = "No contact found for \"$cleanCommand\""
+                          assistantStatusText = "No contact found for \"$searchName\""
                           speakOut("No contact found.")
                       }
                       matched.size == 1 -> {
                           val target = matched[0]
-                          assistantStatusText = "${target.name} Call\nConnecting..."
-                          displayList.clear()
-                          displayList.add("📞 ${target.name} (${target.phone}) - Calling...")
-                          speakOut("Calling ${target.name}")
-                          makePhoneCall(target.phone)
+                          if (hasCallKeyword) {
+                              assistantStatusText = "Calling ${target.name}..."
+                              speakOut("Calling ${target.name}")
+                              makePhoneCall(target.phone)
+                          } else {
+                              assistantStatusText = "Found: ${target.name}\nSay 'Call ${target.name}' to dial."
+                              speakOut("Found ${target.name}. Say call to dial.")
+                          }
                       }
                       else -> {
-                          assistantStatusText = "Found ${matched.size} matches for \"$cleanCommand\""
+                          assistantStatusText = "Found ${matched.size} contacts for \"$searchName\""
                           var speechText = "Found ${matched.size} contacts. "
-                          displayList.clear()
                           matched.forEachIndexed { idx, contact ->
                               speechText += "Number ${idx + 1}: ${contact.name}. "
-                              displayList.add("🔸 ${idx + 1}. ${contact.name} (${contact.phone})")
                           }
                           speakOut(speechText)
                       }
@@ -535,11 +521,11 @@ jobs:
                       textSize = 16f
                       setTextColor(Color.parseColor("#1E3A8A"))
                       gravity = Gravity.CENTER
-                      setPadding(0, 0, 0, 20)
+                      setPadding(0, 0, 0, 30)
                   }
 
                   val btnMic = ImageButton(requireContext()).apply {
-                      layoutParams = LinearLayout.LayoutParams(160, 160).apply { setMargins(0, 0, 0, 20) }
+                      layoutParams = LinearLayout.LayoutParams(180, 180).apply { setMargins(0, 0, 0, 30) }
                       setBackgroundResource(R.drawable.circle_mic_normal)
                       setImageResource(android.R.drawable.ic_btn_speak_now)
                       scaleType = ImageView.ScaleType.CENTER_INSIDE
@@ -555,14 +541,6 @@ jobs:
                       setPadding(0, 0, 0, 20)
                   }
 
-                  val listView = ListView(requireContext()).apply {
-                      layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
-                      background = ContextCompat.getDrawable(requireContext(), R.drawable.list_background)
-                  }
-
-                  val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, MainActivity.instance.displayList)
-                  listView.adapter = adapter
-
                   btnMic.setOnClickListener {
                       btnMic.setBackgroundResource(R.drawable.circle_mic_active)
                       waveTv.text = "🌈✨ Listening... Speak now..."
@@ -573,13 +551,12 @@ jobs:
                           btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
                           waveTv.text = " ıllılıl llılıll "
                           statusTv.text = MainActivity.instance.assistantStatusText
-                      }, 5000)
+                      }, 6000)
                   }
 
                   layout.addView(statusTv)
                   layout.addView(btnMic)
                   layout.addView(waveTv)
-                  layout.addView(listView)
                   return layout
               }
           }
@@ -622,4 +599,3 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-
