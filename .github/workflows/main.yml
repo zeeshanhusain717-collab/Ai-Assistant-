@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 17
-                  versionName "17.0"
+                  versionCode 18
+                  versionName "18.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -238,12 +238,13 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with Android Native Offline & Telecom Engine
+      - name: Write Pure Kotlin MainActivity.kt with Android Native Intent Voice Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
 
           import android.Manifest
+          import android.app.Activity
           import android.content.Intent
           import android.content.pm.PackageManager
           import android.database.Cursor
@@ -252,9 +253,7 @@ jobs:
           import android.os.Bundle
           import android.provider.CallLog
           import android.provider.ContactsContract
-          import android.speech.RecognitionListener
           import android.speech.RecognizerIntent
-          import android.speech.SpeechRecognizer
           import android.speech.tts.TextToSpeech
           import android.view.Gravity
           import android.view.View
@@ -274,17 +273,16 @@ jobs:
               private lateinit var tabAssistant: Button
               private lateinit var tabContacts: Button
 
-              private lateinit var speechRecognizer: SpeechRecognizer
               private lateinit var textToSpeech: TextToSpeech
 
               val allContacts = mutableListOf<ContactItem>()
               val fullContactsList = ArrayList<String>()
 
               var assistantStatusText = "Zeeshan Assistant is Ready\nTap the mic to speak..."
-              var isListeningActive = false
 
               companion object {
                   private const val PERMISSION_REQUEST_CODE = 101
+                  private const val VOICE_RECOGNITION_REQUEST_CODE = 202
                   lateinit var instance: MainActivity
               }
 
@@ -301,7 +299,6 @@ jobs:
                   syncAllData()
 
                   textToSpeech = TextToSpeech(this, this)
-                  setupSpeechRecognizer()
 
                   val pagerAdapter = ViewPagerAdapter(this)
                   viewPager.adapter = pagerAdapter
@@ -383,48 +380,31 @@ jobs:
                   }
               }
 
-              private fun setupSpeechRecognizer() {
-                  if (SpeechRecognizer.isRecognitionAvailable(this)) {
-                      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
-                      speechRecognizer.setRecognitionListener(object : RecognitionListener {
-                          override fun onReadyForSpeech(params: Bundle?) {}
-                          override fun onBeginningOfSpeech() {}
-                          override fun onRmsChanged(rmsdB: Float) {}
-                          override fun onBufferReceived(buffer: ByteArray?) {}
-                          override fun onEndOfSpeech() {}
-                          override fun onError(error: Int) {
-                              isListeningActive = false
-                              Toast.makeText(this@MainActivity, "Voice not detected. Try again.", Toast.LENGTH_SHORT).show()
-                          }
-                          override fun onResults(results: Bundle?) {
-                              isListeningActive = false
-                              val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                              if (!matches.isNullOrEmpty()) {
-                                  processCommand(matches[0])
-                              }
-                          }
-                          override fun onPartialResults(partialResults: Bundle?) {}
-                          override fun onEvent(eventType: Int, params: Bundle?) {}
-                      })
-                  }
-              }
-
-              fun startVoiceListening() {
-                  isListeningActive = true
+              fun startNativeVoiceSearch() {
                   val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-                      // 🔥 Android Native On-Device Offline Engine Flag
+                      // 🔥 Force Android Native Offline Search Engine
                       putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+                      putExtra(RecognizerIntent.EXTRA_PROMPT, "Say 'Call [Name]' to dial...")
                   }
                   try {
-                      speechRecognizer.startListening(intent)
+                      startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE)
                   } catch (e: Exception) {
-                      Toast.makeText(this, "Starting offline voice engine...", Toast.LENGTH_SHORT).show()
+                      Toast.makeText(this, "Voice search not available on this device.", Toast.LENGTH_SHORT).show()
                   }
               }
 
-              // 🔥 Strict Keyword Engine: Only calls if "call" is spoken, otherwise reads name/status
+              override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+                  super.onActivityResult(requestCode, resultCode, data)
+                  if (requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+                      val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                      if (!results.isNullOrEmpty()) {
+                          processCommand(results[0])
+                      }
+                  }
+              }
+
               private fun processCommand(spokenText: String) {
                   val rawText = spokenText.trim()
                   val lowerText = rawText.lowercase(Locale.ROOT)
@@ -491,7 +471,6 @@ jobs:
               }
 
               override fun onDestroy() {
-                  if (::speechRecognizer.isInitialized) speechRecognizer.destroy()
                   if (::textToSpeech.isInitialized) {
                       textToSpeech.stop()
                       textToSpeech.shutdown()
@@ -542,16 +521,7 @@ jobs:
                   }
 
                   btnMic.setOnClickListener {
-                      btnMic.setBackgroundResource(R.drawable.circle_mic_active)
-                      waveTv.text = "🌈✨ Listening... Speak now..."
-                      statusTv.text = "Listening..."
-                      MainActivity.instance.startVoiceListening()
-                      
-                      btnMic.postDelayed({
-                          btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
-                          waveTv.text = " ıllılıl llılıll "
-                          statusTv.text = MainActivity.instance.assistantStatusText
-                      }, 6000)
+                      MainActivity.instance.startNativeVoiceSearch()
                   }
 
                   layout.addView(statusTv)
