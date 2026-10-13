@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 25
-                  versionName "25.0"
+                  versionCode 30
+                  versionName "30.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -102,7 +102,7 @@ jobs:
           </resources>
           EOF
 
-          # 🔥 Stunning 3D Vector App Icon
+          # 🔥 3D Neon App Icon
           cat > app/src/main/res/drawable/ic_app_icon.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
@@ -110,26 +110,26 @@ jobs:
               android:viewportWidth="108"
               android:viewportHeight="108">
               <path android:fillColor="#0F172A" android:pathData="M0,0h108v108h-108z"/>
-              <path android:fillColor="#2563EB" android:pathData="M24,24h60c6.6,0 12,5.4 12,12v36c0,6.6 -5.4,12 -12,12H24c-6.6,0 -12,-5.4 -12,-12V36c0,-6.6 5.4,-12 12,-12z"/>
-              <path android:fillColor="#60A5FA" android:pathData="M32,36h44c2.2,0 4,1.8 4,4v28c0,2.2 -1.8,4 -4,4H32c-2.2,0 -4,-1.8 -4,-4V40c0,-2.2 1.8,-4 4,-4z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M54,44c-3.3,0 -6,2.7 -6,6v10c0,3.3 2.7,6 6,6s6,-2.7 6,-6V50c0,-3.3 -2.7,-6 -6,-6z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M42,56c0,6.6 5.4,12 12,12s12,-5.4 12,-12h4c0,8.8 -7.2,16 -16,16s-16,-7.2 -16,-16h4z"/>
+              <path android:fillColor="#00F2FE" android:pathData="M24,24h60c6.6,0 12,5.4 12,12v36c0,6.6 -5.4,12 -12,12H24c-6.6,0 -12,-5.4 -12,-12V36c0,-6.6 5.4,-12 12,-12z"/>
+              <path android:fillColor="#0f172a" android:pathData="M30,30h48v48h-48z"/>
+              <path android:fillColor="#00F2FE" android:pathData="M54,42c-3.3,0 -6,2.7 -6,6v12c0,3.3 2.7,6 6,6s6,-2.7 6,-6V48c0,-3.3 -2.7,-6 -6,-6z"/>
+              <path android:fillColor="#00F2FE" android:pathData="M40,56c0,7.7 6.3,14 14,14s14,-6.3 14,-14h4c0,9.9 -8.1,18 -18,18s-18,-8.1 -18,-18h4z"/>
           </vector>
           EOF
 
-          # 🔥 VIP 3D Normal Mic Button
+          # 🔥 VIP 3D Neon Normal Mic Button
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#93C5FD" android:centerColor="#2563EB" android:endColor="#0F172A" />
-              <stroke android:width="6dp" android:color="#60A5FA" />
+              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#00F2FE" android:centerColor="#0369A1" android:endColor="#0F172A" />
+              <stroke android:width="5dp" android:color="#38BDF8" />
           </shape>
           EOF
 
-          # 🔥 VIP 3D Active Green Mic Button
+          # 🔥 VIP 3D Neon Active Green Mic Button
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#86EFAC" android:centerColor="#16A34A" android:endColor="#064E3B" />
-              <stroke android:width="6dp" android:color="#4ADE80" />
+              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#4ADE80" android:centerColor="#16A34A" android:endColor="#064E3B" />
+              <stroke android:width="5dp" android:color="#86EFAC" />
           </shape>
           EOF
 
@@ -139,13 +139,13 @@ jobs:
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              android:background="#F8FAFC">
+              android:background="#0F172A">
 
-              <!-- Top VIP Header Bar -->
+              <!-- Top VIP Dark Neon Header Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="75dp"
-                  android:background="#0F172A"
+                  android:background="#1E293B"
                   android:gravity="center_vertical"
                   android:paddingHorizontal="24dp"
                   android:elevation="8dp">
@@ -153,12 +153,12 @@ jobs:
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
                       android:text="👑 Zeeshan Assistant Call"
-                      android:textColor="#FFFFFF"
+                      android:textColor="#38BDF8"
                       android:textSize="20sp"
                       android:textStyle="bold" />
               </LinearLayout>
 
-              <!-- Center VIP Layout -->
+              <!-- Center Neon Layout -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
@@ -171,9 +171,9 @@ jobs:
                       android:id="@+id/statusTitleTv"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="Assistant is Ready"
-                      android:textSize="20sp"
-                      android:textColor="#0F172A"
+                      android:text="AI Assistant is Ready"
+                      android:textSize="22sp"
+                      android:textColor="#FFFFFF"
                       android:textStyle="bold"
                       android:gravity="center"
                       android:layout_marginBottom="10dp" />
@@ -184,11 +184,11 @@ jobs:
                       android:layout_height="wrap_content"
                       android:text="Tap mic and say 'Call [Name]'"
                       android:textSize="15sp"
-                      android:textColor="#64748B"
+                      android:textColor="#94A3B8"
                       android:gravity="center"
                       android:layout_marginBottom="45dp" />
 
-                  <!-- Centered 3D VIP Mic Button -->
+                  <!-- Centered 3D Neon Mic Button -->
                   <ImageButton
                       android:id="@+id/btnMic"
                       android:layout_width="170dp"
@@ -197,7 +197,7 @@ jobs:
                       android:src="@android:drawable/ic_btn_speak_now"
                       android:scaleType="centerInside"
                       android:elevation="20dp"
-                      android:contentDescription="VIP Mic"
+                      android:contentDescription="VIP Neon Mic"
                       android:layout_marginBottom="45dp" />
 
                   <!-- Audio Wave Animation Indicator -->
@@ -207,22 +207,22 @@ jobs:
                       android:layout_height="wrap_content"
                       android:text=" ıllılıl llılıll "
                       android:textSize="32sp"
-                      android:textColor="#2563EB"
+                      android:textColor="#00F2FE"
                       android:gravity="center" />
 
               </LinearLayout>
 
-              <!-- Bottom VIP Footer Bar -->
+              <!-- Bottom VIP Single Neon Footer Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="65dp"
-                  android:background="#0F172A"
+                  android:background="#1E293B"
                   android:gravity="center"
                   android:elevation="8dp">
                   <TextView
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="⚡ 100% Offline VIP Voice Engine ⚡"
+                      android:text="⚡ Your AI Call Assistant | 100% Offline ⚡"
                       android:textColor="#38BDF8"
                       android:textSize="14sp"
                       android:textStyle="bold" />
@@ -258,7 +258,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with VIP 3D Engine
+      - name: Write Pure Kotlin MainActivity.kt with Neon VIP Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -398,7 +398,7 @@ jobs:
                           }
                           override fun onError(error: Int) {
                               resetMicState()
-                              statusTitleTv.text = "Assistant is Ready"
+                              statusTitleTv.text = "AI Assistant is Ready"
                               statusDescTv.text = "Tap mic to try again."
                               Toast.makeText(this@MainActivity, "Listening error ($error). Try again.", Toast.LENGTH_SHORT).show()
                           }
@@ -538,4 +538,3 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-
