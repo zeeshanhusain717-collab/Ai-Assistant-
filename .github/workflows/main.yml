@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 5
-                  versionName "5.0"
+                  versionCode 6
+                  versionName "6.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -103,7 +103,7 @@ jobs:
           </resources>
           EOF
 
-          # 🎨 Code-generated App Icon: White background, blue call base with mic on top
+          # 🎨 App Icon Vector
           cat > app/src/main/res/drawable/ic_app_icon.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
@@ -116,25 +116,17 @@ jobs:
           </vector>
           EOF
 
-          # 🌈 AI Normal Mic Button (Blue/Cyan Gradient)
+          # 🔵 Normal Blue Mic Button
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient
-                  android:type="radial"
-                  android:gradientRadius="80dp"
-                  android:startColor="#38BDF8"
-                  android:endColor="#1E3A8A" />
+              <gradient android:type="radial" android:gradientRadius="80dp" android:startColor="#38BDF8" android:endColor="#1E3A8A" />
           </shape>
           EOF
 
-          # 🔥 AI Vibrant Colorful Glowing Animation State (Rose/Red Gradient)
+          # 🟢 Active Green Mic Button (As per user design image)
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient
-                  android:type="radial"
-                  android:gradientRadius="80dp"
-                  android:startColor="#F43F5E"
-                  android:endColor="#881337" />
+              <gradient android:type="radial" android:gradientRadius="80dp" android:startColor="#4ADE80" android:endColor="#15803D" />
           </shape>
           EOF
 
@@ -154,7 +146,7 @@ jobs:
               android:orientation="vertical"
               android:background="#F8FAFC">
 
-              <!-- Header Bar with requested name -->
+              <!-- Header Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="65dp"
@@ -171,14 +163,14 @@ jobs:
                       android:textStyle="bold" />
               </LinearLayout>
 
-              <!-- ViewPager2 for smooth swiping between Assistant Screen and Contacts Screen -->
+              <!-- ViewPager2 for swiping screens -->
               <androidx.viewpager2.widget.ViewPager2
                   android:id="@+id/viewPager"
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
                   android:layout_weight="1" />
 
-              <!-- Bottom Navigation Bar (Pure English Tabs) -->
+              <!-- Bottom Navigation Bar -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="60dp"
@@ -192,7 +184,7 @@ jobs:
                       android:layout_width="0dp"
                       android:layout_height="match_parent"
                       android:layout_weight="1"
-                      android:text="🎙️ Z Assistant"
+                      android:text="Z ASSISTANT"
                       android:textSize="14sp"
                       android:backgroundTint="#1E3A8A"
                       android:textColor="#FFFFFF" />
@@ -202,7 +194,7 @@ jobs:
                       android:layout_width="0dp"
                       android:layout_height="match_parent"
                       android:layout_weight="1"
-                      android:text="📞 Contacts List"
+                      android:text="CONTACTS"
                       android:textSize="14sp"
                       android:backgroundTint="#475569"
                       android:textColor="#FFFFFF" />
@@ -239,7 +231,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with Swipe Tabs & Z AI Engine
+      - name: Write Pure Kotlin MainActivity.kt with Direct Auto-Call & Green Mic UI
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -264,7 +256,6 @@ jobs:
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
-          import androidx.recyclerview.widget.RecyclerView
           import androidx.viewpager2.widget.ViewPager2
           import java.util.*
 
@@ -283,7 +274,9 @@ jobs:
               val displayList = ArrayList<String>()
               val fullContactsList = ArrayList<String>()
 
-              private var isSpeakingNames = false
+              var assistantStatusText = "Zeeshan Assistant is Ready\nTap the mic to speak..."
+              var assistantWaveText = " ~ ~ ıllılıl llılıll ~ ~ "
+              var isListeningActive = false
 
               companion object {
                   private const val PERMISSION_REQUEST_CODE = 101
@@ -321,13 +314,8 @@ jobs:
                       }
                   })
 
-                  tabAssistant.setOnClickListener {
-                      viewPager.currentItem = 0
-                  }
-
-                  tabContacts.setOnClickListener {
-                      viewPager.currentItem = 1
-                  }
+                  tabAssistant.setOnClickListener { viewPager.currentItem = 0 }
+                  tabContacts.setOnClickListener { viewPager.currentItem = 1 }
               }
 
               private fun checkPermissions() {
@@ -399,19 +387,16 @@ jobs:
                   speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
                   speechRecognizer.setRecognitionListener(object : RecognitionListener {
                       override fun onReadyForSpeech(params: Bundle?) {}
-                      override fun onBeginningOfSpeech() {
-                          if (isSpeakingNames) {
-                              textToSpeech.stop()
-                              isSpeakingNames = false
-                          }
-                      }
+                      override fun onBeginningOfSpeech() {}
                       override fun onRmsChanged(rmsdB: Float) {}
                       override fun onBufferReceived(buffer: ByteArray?) {}
                       override fun onEndOfSpeech() {}
                       override fun onError(error: Int) {
+                          isListeningActive = false
                           Toast.makeText(this@MainActivity, "Voice not detected. Try again.", Toast.LENGTH_SHORT).show()
                       }
                       override fun onResults(results: Bundle?) {
+                          isListeningActive = false
                           val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                           if (!matches.isNullOrEmpty()) {
                               processZCommand(matches[0])
@@ -423,6 +408,7 @@ jobs:
               }
 
               fun startVoiceListening() {
+                  isListeningActive = true
                   val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
@@ -440,7 +426,7 @@ jobs:
                       .replace("इरशाद", "irshad")
                       .replace("जीशान", "zeeshan")
                       .replace("जुबेर", "zubair")
-                      .replace("को", "").replace("कॉल", "").replace("लगाओ", "").replace("फोन", "")
+                      .replace("को", "").replace("कॉल", "").replace("लगाओ", "").replace("ফোন", "").replace("फोन", "")
                       .replace("call", "").replace("to", "").trim()
               }
 
@@ -451,15 +437,27 @@ jobs:
                   }
 
                   when {
-                      matched.isEmpty() -> speakOut("No contact found.")
+                      matched.isEmpty() -> {
+                          assistantStatusText = "No contact found for \"$command\""
+                          speakOut("No contact found.")
+                      }
                       matched.size == 1 -> {
-                          speakOut("Calling ${matched[0].name}")
-                          makePhoneCall(matched[0].phone)
+                          // 🔥 Direct Call Logic: Exactly 1 match found -> immediate call without asking questions!
+                          val target = matched[0]
+                          assistantStatusText = "${target.name} Call\nCalling now..."
+                          displayList.clear()
+                          displayList.add("📞 ${target.name} (${target.phone}) - Calling...")
+                          speakOut("Calling ${target.name}")
+                          makePhoneCall(target.phone)
                       }
                       else -> {
+                          // If multiple matches found, list them clearly
+                          assistantStatusText = "Found ${matched.size} matches for \"$command\""
                           var speechText = "Found ${matched.size} contacts. "
+                          displayList.clear()
                           matched.forEachIndexed { idx, contact ->
                               speechText += "Number ${idx + 1}: ${contact.name}. "
+                              displayList.add("🔸 ${idx + 1}. ${contact.name} (${contact.phone})")
                           }
                           speakOut(speechText)
                       }
@@ -467,7 +465,6 @@ jobs:
               }
 
               private fun speakOut(text: String) {
-                  isSpeakingNames = true
                   textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
               }
 
@@ -513,7 +510,7 @@ jobs:
                   }
 
                   val statusTv = TextView(requireContext()).apply {
-                      text = "Z Assistant is ready. Tap mic to speak..."
+                      text = MainActivity.instance.assistantStatusText
                       textSize = 16f
                       setTextColor(Color.parseColor("#1E3A8A"))
                       gravity = Gravity.CENTER
@@ -530,7 +527,7 @@ jobs:
                   }
 
                   val waveTv = TextView(requireContext()).apply {
-                      text = " ~ ~ ıllılıl llılıll ~ ~ "
+                      text = MainActivity.instance.assistantWaveText
                       textSize = 20f
                       setTextColor(Color.parseColor("#0EA5E9"))
                       gravity = Gravity.CENTER
@@ -546,16 +543,16 @@ jobs:
                   listView.adapter = adapter
 
                   btnMic.setOnClickListener {
-                      btnMic.setBackgroundResource(R.drawable.circle_mic_active)
-                      waveTv.text = "🌈✨ Z Assistant is listening..."
+                      btnMic.setBackgroundResource(R.drawable.circle_mic_active) // Green Active State
+                      waveTv.text = "🌈✨ Listening... Speak now..."
                       statusTv.text = "Listening..."
                       MainActivity.instance.startVoiceListening()
                       
                       btnMic.postDelayed({
                           btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
                           waveTv.text = " ~ ~ ıllılıl llılıll ~ ~ "
-                          statusTv.text = "Z Assistant is ready. Tap mic to speak..."
-                      }, 4000)
+                          statusTv.text = MainActivity.instance.assistantStatusText
+                      }, 5000)
                   }
 
                   layout.addView(statusTv)
@@ -604,3 +601,4 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
