@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 11
-                  versionName "11.0"
+                  versionCode 13
+                  versionName "13.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -103,7 +103,6 @@ jobs:
           </resources>
           EOF
 
-          # 🟢 3D Metallic Green App Icon matching screenshot
           cat > app/src/main/res/drawable/ic_app_icon.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
@@ -117,45 +116,43 @@ jobs:
           </vector>
           EOF
 
-          # 🌟 3D Neon Glowing Normal Mic Button
+          # 🌟 Vibrant 3D Neon Cyan & Emerald Mic Button
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="90dp" android:startColor="#34D399" android:centerColor="#059669" android:endColor="#022C22" />
-              <stroke android:width="4dp" android:color="#6EE7B7" />
+              <gradient android:type="radial" android:gradientRadius="100dp" android:startColor="#38BDF8" android:centerColor="#0EA5E9" android:endColor="#065F46" />
+              <stroke android:width="5dp" android:color="#22D3EE" />
           </shape>
           EOF
 
-          # 🔥 3D Neon Active Mic Button
+          # 🔥 Vibrant 3D Neon Rose & Fire Active Mic Button
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="90dp" android:startColor="#F43F5E" android:centerColor="#E11D48" android:endColor="#4C0519" />
-              <stroke android:width="4dp" android:color="#FDA4AF" />
+              <gradient android:type="radial" android:gradientRadius="100dp" android:startColor="#F43F5E" android:centerColor="#E11D48" android:endColor="#881337" />
+              <stroke android:width="5dp" android:color="#FDA4AF" />
           </shape>
           EOF
 
-          # 🧊 3D Glassmorphism Card Background
           cat > app/src/main/res/drawable/card_background.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="#CC022C22" />
-              <corners android:radius="18dp" />
-              <stroke android:width="1.5dp" android:color="#34D399" />
+              <solid android:color="#CC064E3B" />
+              <corners android:radius="20dp" />
+              <stroke android:width="2dp" android:color="#34D399" />
           </shape>
           EOF
 
           cat > app/src/main/res/drawable/list_background.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="#021C16" />
-              <corners android:radius="16dp" />
-              <stroke android:width="1dp" android:color="#059669" />
+              <solid android:color="#022019" />
+              <corners android:radius="18dp" />
+              <stroke android:width="1.5dp" android:color="#059669" />
           </shape>
           EOF
 
-          # 🎨 Bottom Tab Card Style (Rounded Pill Container as in image)
           cat > app/src/main/res/drawable/tab_card_background.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="#042F26" />
+              <solid android:color="#047857" />
               <corners android:radius="16dp" />
-              <stroke android:width="1.5dp" android:color="#059669" />
+              <stroke android:width="2dp" android:color="#6EE7B7" />
           </shape>
           EOF
 
@@ -165,13 +162,12 @@ jobs:
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              android:background="#011F18">
+              android:background="#021C16">
 
-              <!-- 3D Header Bar with White Rounded App Icon Card -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="75dp"
-                  android:background="#022C22"
+                  android:background="#064E3B"
                   android:gravity="center_vertical"
                   android:paddingHorizontal="16dp"
                   android:elevation="8dp">
@@ -199,18 +195,16 @@ jobs:
                       android:textStyle="bold" />
               </LinearLayout>
 
-              <!-- ViewPager2 for 3D Swipe Screens -->
               <androidx.viewpager2.widget.ViewPager2
                   android:id="@+id/viewPager"
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
                   android:layout_weight="1" />
 
-              <!-- 3D Floating Bottom Navigation Bar with Image-Matched Rounded Cards -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="85dp"
-                  android:background="#022C22"
+                  android:background="#064E3B"
                   android:orientation="horizontal"
                   android:elevation="14dp"
                   android:gravity="center"
@@ -239,7 +233,7 @@ jobs:
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
                           android:text="Z ASSISTANT"
-                          android:textColor="#34D399"
+                          android:textColor="#FFFFFF"
                           android:textSize="11sp"
                           android:textStyle="bold"
                           android:layout_marginTop="2dp" />
@@ -251,7 +245,7 @@ jobs:
                       android:layout_height="match_parent"
                       android:layout_weight="1"
                       android:layout_marginStart="8dp"
-                      android:background="@drawable/tab_card_background"
+                      android:background="@drawable/card_background"
                       android:gravity="center"
                       android:orientation="vertical"
                       android:clickable="true"
@@ -306,7 +300,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with Exact Image Layout & Trilingual Speed
+      - name: Write Pure Kotlin MainActivity.kt with Robust Hindi Fuzzy-Match Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -332,7 +326,6 @@ jobs:
           import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
           import androidx.viewpager2.widget.ViewPager2
-          import java.text.Normalizer
           import java.util.*
 
           data class ContactItem(val name: String, val phone: String)
@@ -350,7 +343,7 @@ jobs:
               val displayList = ArrayList<String>()
               val fullContactsList = ArrayList<String>()
 
-              var assistantStatusText = "Listening..."
+              var assistantStatusText = "Tap mic to speak..."
               var isListeningActive = false
 
               companion object {
@@ -381,10 +374,10 @@ jobs:
                           super.onPageSelected(position)
                           if (position == 0) {
                               tabAssistantLayout.setBackgroundResource(R.drawable.tab_card_background)
-                              tabContactsLayout.setBackgroundColor(Color.parseColor("#022C22"))
+                              tabContactsLayout.setBackgroundResource(R.drawable.card_background)
                           } else {
                               tabContactsLayout.setBackgroundResource(R.drawable.tab_card_background)
-                              tabAssistantLayout.setBackgroundColor(Color.parseColor("#022C22"))
+                              tabAssistantLayout.setBackgroundResource(R.drawable.card_background)
                           }
                       }
                   })
@@ -474,7 +467,7 @@ jobs:
                           isListeningActive = false
                           val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                           if (!matches.isNullOrEmpty()) {
-                              processUniversalTrilingualCommand(matches[0])
+                              processFuzzyHindiCommand(matches[0])
                           }
                       }
                       override fun onPartialResults(partialResults: Bundle?) {}
@@ -491,33 +484,21 @@ jobs:
                   speechRecognizer.startListening(intent)
               }
 
-              private fun universalPhoneticMatch(input: String, target: String): Boolean {
-                  val cleanInput = cleanAndTransliterate(input)
-                  val cleanTarget = cleanAndTransliterate(target)
-                  return cleanTarget.contains(cleanInput) || cleanInput.contains(cleanTarget)
-              }
+              // 🔥 Robust Fuzzy Hindi Matcher (Handles partial words & exact match for Samir Ansari / समीर अंसारी)
+              private fun processFuzzyHindiCommand(command: String) {
+                  val cleanCommand = command.trim()
+                  assistantStatusText = "Searching for \"$cleanCommand\"..."
 
-              private fun cleanAndTransliterate(text: String): String {
-                  var normalized = Normalizer.normalize(text.lowercase(Locale.ROOT), Normalizer.Form.NFD)
-                      .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
-
-                  val stopWords = listOf("को", "कॉल", "लगाओ", "फोन", "पर", "call", "to", "phone", "number", "ملاؤ", "فون", "کال")
-                  for (word in stopWords) {
-                      normalized = normalized.replace(word, "")
-                  }
-                  return normalized.trim()
-              }
-
-              private fun processUniversalTrilingualCommand(command: String) {
-                  assistantStatusText = "Searching for \"$command\"..."
-                  
-                  val matched = allContacts.filter { 
-                      universalPhoneticMatch(command, it.name) || it.phone.contains(command.trim())
+                  val matched = allContacts.filter { contact ->
+                      val cName = contact.name.lowercase(Locale.ROOT)
+                      val sCmd = cleanCommand.lowercase(Locale.ROOT)
+                      cName.contains(sCmd) || sCmd.contains(cName) || contact.phone.contains(sCmd) ||
+                      cName.split(" ").any { sCmd.contains(it) && it.length > 1 }
                   }
 
                   when {
                       matched.isEmpty() -> {
-                          assistantStatusText = "No contact found for \"$command\""
+                          assistantStatusText = "No contact found for \"$cleanCommand\""
                           speakOut("No contact found.")
                       }
                       matched.size == 1 -> {
@@ -529,7 +510,7 @@ jobs:
                           makePhoneCall(target.phone)
                       }
                       else -> {
-                          assistantStatusText = "Found ${matched.size} matches for \"$command\""
+                          assistantStatusText = "Found ${matched.size} matches for \"$cleanCommand\""
                           var speechText = "Found ${matched.size} contacts. "
                           displayList.clear()
                           matched.forEachIndexed { idx, contact ->
@@ -583,37 +564,37 @@ jobs:
                       orientation = LinearLayout.VERTICAL
                       gravity = Gravity.CENTER
                       setPadding(24, 24, 24, 24)
-                      setBackgroundColor(Color.parseColor("#011F18"))
+                      setBackgroundColor(Color.parseColor("#021C16"))
                   }
 
-                  // 📊 Equalizer Audio Wave Lines matching screenshot exactly
+                  // 📊 Glowing Neon Equalizer Audio Wave Lines matching screenshot exactly
                   val waveTv = TextView(requireContext()).apply {
                       text = " ıllılıl llılıll "
-                      textSize = 26f
+                      textSize = 28f
                       setTextColor(Color.parseColor("#34D399"))
                       gravity = Gravity.CENTER
-                      setPadding(0, 0, 0, 10)
+                      setPadding(0, 0, 0, 8)
                   }
 
                   val statusTitleTv = TextView(requireContext()).apply {
                       text = "Listening..."
-                      textSize = 16f
+                      textSize = 17f
                       setTextColor(Color.parseColor("#A7F3D0"))
                       gravity = Gravity.CENTER
                       setPadding(0, 0, 0, 20)
                   }
 
-                  // 🎤 Large 3D Neon Mic Button in Center
+                  // 🎤 Vibrant 3D Neon Glowing Mic Button in Center
                   val btnMic = ImageButton(requireContext()).apply {
-                      layoutParams = LinearLayout.LayoutParams(160, 160).apply { setMargins(0, 0, 0, 25) }
+                      layoutParams = LinearLayout.LayoutParams(170, 170).apply { setMargins(0, 0, 0, 25) }
                       setBackgroundResource(R.drawable.circle_mic_normal)
                       setImageResource(android.R.drawable.ic_btn_speak_now)
                       scaleType = ImageView.ScaleType.CENTER_INSIDE
-                      elevation = 20f
-                      contentDescription = "3D Z Assistant Mic"
+                      elevation = 24f
+                      contentDescription = "3D Neon Z Assistant Mic"
                   }
 
-                  // 🧊 3D Glassmorphism Status Card matching screenshot
+                  // 🧊 3D Glassmorphism Status Card matching screenshot design
                   val cardLayout = LinearLayout(requireContext()).apply {
                       orientation = LinearLayout.HORIZONTAL
                       layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 5, 0, 20) }
@@ -623,7 +604,6 @@ jobs:
                       elevation = 12f
                   }
 
-                  // Green Indicator Dot
                   val dotView = View(requireContext()).apply {
                       layoutParams = LinearLayout.LayoutParams(16, 16).apply { setMargins(0, 0, 14, 0) }
                       background = ContextCompat.getDrawable(requireContext(), android.R.drawable.presence_online)
@@ -648,7 +628,7 @@ jobs:
                   btnMic.setOnClickListener {
                       btnMic.setBackgroundResource(R.drawable.circle_mic_active)
                       statusTitleTv.text = "Listening..."
-                      statusTv.text = "Your AI Call Assistant\nListening in Hindi, Urdu & English..."
+                      statusTv.text = "Your AI Call Assistant\nListening in Hindi..."
                       MainActivity.instance.startVoiceListening()
                       
                       btnMic.postDelayed({
@@ -672,7 +652,7 @@ jobs:
                   val layout = LinearLayout(requireContext()).apply {
                       orientation = LinearLayout.VERTICAL
                       setPadding(20, 20, 20, 20)
-                      setBackgroundColor(Color.parseColor("#011F18"))
+                      setBackgroundColor(Color.parseColor("#021C16"))
                   }
 
                   val title = TextView(requireContext()).apply {
@@ -705,3 +685,4 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
