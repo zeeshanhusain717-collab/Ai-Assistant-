@@ -37,7 +37,6 @@ jobs:
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/drawable
           mkdir -p app/src/main/res/layout
-          mkdir -p app/src/main/res/menu
 
           cat > gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
@@ -75,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 2
-                  versionName "2.0"
+                  versionCode 5
+                  versionName "5.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -89,7 +88,7 @@ jobs:
               implementation "androidx.core:core-ktx:1.13.1"
               implementation "androidx.appcompat:appcompat:1.7.0"
               implementation "com.google.android.material:material:1.12.0"
-              implementation "androidx.drawerlayout:drawerlayout:1.2.0"
+              implementation "androidx.viewpager2:viewpager2:1.1.0"
           }
           EOF
 
@@ -100,32 +99,42 @@ jobs:
           cat > app/src/main/res/values/strings.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <string name="app_name">Zeeshan Mic Assistant</string>
-              <string name="navigation_drawer_open">Open navigation drawer</string>
-              <string name="navigation_drawer_close">Close navigation drawer</string>
+              <string name="app_name">Z + 2 Assistant Call</string>
           </resources>
           EOF
 
+          # 🎨 Code-generated App Icon: White background, blue call base with mic on top
           cat > app/src/main/res/drawable/ic_app_icon.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
               android:height="108dp"
               android:viewportWidth="24"
               android:viewportHeight="24">
-              <path android:fillColor="#1E3A8A" android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M12,14c1.66,0 3,-1.34 3,-3V5c0,-1.66 -1.34,-3 -3,-3S9,3.34 9,5v6c0,1.66 1.34,3 3,3zM17.1,11c0,2.76 -2.24,5 -5,5s-5,-2.24 -5,-5H5c0,3.53 2.61,6.43 6,6.92V21h2v-3.08c3.39,-0.49 6,-3.39 6,-6.92h-1.9z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M0,0h24v24H0z"/>
+              <path android:fillColor="#1E3A8A" android:pathData="M6.62,10.79c1.44,2.83 3.76,5.14 6.59,6.59l2.2,-2.2c0.27,-0.27 0.67,-0.36 1.02,-0.24 1.12,0.37 2.33,0.57 3.57,0.57 0.55,0 1,0.45 1,1V20c0,0.55 -0.45,1 -1,1 -9.39,0 -17,-7.61 -17,-17 0,-0.55 0.45,-1 1,-1h3.5c0.55,0 1,0.45 1,1 0,1.25 0.2,2.45 0.57,3.57 0.11,0.35 0.03,0.74 -0.25,1.02l-2.2,2.2z"/>
+              <path android:fillColor="#0EA5E9" android:pathData="M12,14c1.66,0 3,-1.34 3,-3V5c0,-1.66 -1.34,-3 -3,-3S9,3.34 9,5v6c0,1.66 1.34,3 3,3z"/>
           </vector>
           EOF
 
+          # 🌈 AI Normal Mic Button (Blue/Cyan Gradient)
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <solid android:color="#1E3A8A" />
+              <gradient
+                  android:type="radial"
+                  android:gradientRadius="80dp"
+                  android:startColor="#38BDF8"
+                  android:endColor="#1E3A8A" />
           </shape>
           EOF
 
+          # 🔥 AI Vibrant Colorful Glowing Animation State (Rose/Red Gradient)
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <solid android:color="#EF4444" />
+              <gradient
+                  android:type="radial"
+                  android:gradientRadius="80dp"
+                  android:startColor="#F43F5E"
+                  android:endColor="#881337" />
           </shape>
           EOF
 
@@ -139,110 +148,68 @@ jobs:
 
           cat > app/src/main/res/layout/activity_main.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/drawerLayout"
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:background="#F8FAFC">
 
-              <!-- Main Home Screen -->
+              <!-- Header Bar with requested name -->
               <LinearLayout
                   android:layout_width="match_parent"
-                  android:layout_height="match_parent"
-                  android:orientation="vertical"
-                  android:background="#F8FAFC">
-
-                  <LinearLayout
-                      android:layout_width="match_parent"
-                      android:layout_height="65dp"
-                      android:background="#1E3A8A"
-                      android:gravity="center_vertical"
-                      android:paddingHorizontal="16dp"
-                      android:elevation="4dp">
-                      <TextView
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:text="🎙️ Zeeshan Mic Assistant (ZED)"
-                          android:textColor="#FFFFFF"
-                          android:textSize="18sp"
-                          android:textStyle="bold" />
-                  </LinearLayout>
-
-                  <LinearLayout
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent"
-                      android:orientation="vertical"
-                      android:gravity="center"
-                      android:padding="24dp">
-
-                      <TextView
-                          android:id="@+id/statusTv"
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:text="ZED is ready. Tap mic and speak..."
-                          android:textColor="#1E3A8A"
-                          android:textSize="16sp"
-                          android:textStyle="bold"
-                          android:gravity="center"
-                          android:layout_marginBottom="30dp" />
-
-                      <ImageButton
-                          android:id="@+id/btnMic"
-                          android:layout_width="130dp"
-                          android:layout_height="130dp"
-                          android:background="@drawable/circle_mic_normal"
-                          android:src="@android:drawable/ic_btn_speak_now"
-                          android:scaleType="centerInside"
-                          android:elevation="8dp"
-                          android:contentDescription="Mic Button"
-                          android:layout_marginBottom="20dp" />
-
-                      <TextView
-                          android:id="@+id/waveTv"
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:text=" ~ ~ ıllılıl llılıll ~ ~ "
-                          android:textColor="#94A3B8"
-                          android:textSize="22sp"
-                          android:letterSpacing="0.2"
-                          android:layout_marginBottom="30dp" />
-
-                      <ListView
-                          android:id="@+id/listView"
-                          android:layout_width="match_parent"
-                          android:layout_height="0dp"
-                          android:layout_weight="1"
-                          android:background="@drawable/list_background"
-                          android:padding="8dp" />
-
-                  </LinearLayout>
-              </LinearLayout>
-
-              <!-- Side Navigation Drawer (Swipe to open for full synced list) -->
-              <LinearLayout
-                  android:layout_width="300dp"
-                  android:layout_height="match_parent"
-                  android:layout_gravity="start"
-                  android:background="#FFFFFF"
-                  android:orientation="vertical"
-                  android:padding="16dp">
-
+                  android:layout_height="65dp"
+                  android:background="#1E3A8A"
+                  android:gravity="center_vertical"
+                  android:paddingHorizontal="16dp"
+                  android:elevation="4dp">
                   <TextView
-                      android:layout_width="match_parent"
+                      android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="📂 Synced Contacts &amp; History"
-                      android:textColor="#1E3A8A"
+                      android:text="🎙️ Zeeshan Assistant Call"
+                      android:textColor="#FFFFFF"
                       android:textSize="18sp"
-                      android:textStyle="bold"
-                      android:paddingBottom="12dp" />
+                      android:textStyle="bold" />
+              </LinearLayout>
 
-                  <ListView
-                      android:id="@+id/navDrawerList"
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent" />
+              <!-- ViewPager2 for smooth swiping between Assistant Screen and Contacts Screen -->
+              <androidx.viewpager2.widget.ViewPager2
+                  android:id="@+id/viewPager"
+                  android:layout_width="match_parent"
+                  android:layout_height="0dp"
+                  android:layout_weight="1" />
+
+              <!-- Bottom Navigation Bar (Pure English Tabs) -->
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="60dp"
+                  android:background="#FFFFFF"
+                  android:orientation="horizontal"
+                  android:elevation="8dp"
+                  android:gravity="center">
+
+                  <Button
+                      android:id="@+id/tabAssistant"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:text="🎙️ Z Assistant"
+                      android:textSize="14sp"
+                      android:backgroundTint="#1E3A8A"
+                      android:textColor="#FFFFFF" />
+
+                  <Button
+                      android:id="@+id/tabContacts"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:text="📞 Contacts List"
+                      android:textSize="14sp"
+                      android:backgroundTint="#475569"
+                      android:textColor="#FFFFFF" />
 
               </LinearLayout>
 
-          </androidx.drawerlayout.widget.DrawerLayout>
+          </LinearLayout>
           EOF
 
           cat > app/src/main/AndroidManifest.xml <<'EOF'
@@ -272,7 +239,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with ZED AI & Drawer Support
+      - name: Write Pure Kotlin MainActivity.kt with Swipe Tabs & Z AI Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -281,6 +248,7 @@ jobs:
           import android.content.Intent
           import android.content.pm.PackageManager
           import android.database.Cursor
+          import android.graphics.Color
           import android.net.Uri
           import android.os.Bundle
           import android.provider.CallLog
@@ -289,56 +257,47 @@ jobs:
           import android.speech.RecognizerIntent
           import android.speech.SpeechRecognizer
           import android.speech.tts.TextToSpeech
+          import android.view.Gravity
+          import android.view.View
+          import android.view.ViewGroup
           import android.widget.*
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
-          import androidx.drawerlayout.widget.DrawerLayout
+          import androidx.recyclerview.widget.RecyclerView
+          import androidx.viewpager2.widget.ViewPager2
           import java.util.*
 
           data class ContactItem(val name: String, val phone: String)
 
           class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-              private lateinit var btnMic: ImageButton
-              private lateinit var statusTv: TextView
-              private lateinit var waveTv: TextView
-              private lateinit var listView: ListView
-              private lateinit var drawerLayout: DrawerLayout
-              private lateinit var navDrawerList: ListView
+              private lateinit var viewPager: ViewPager2
+              private lateinit var tabAssistant: Button
+              private lateinit var tabContacts: Button
 
               private lateinit var speechRecognizer: SpeechRecognizer
               private lateinit var textToSpeech: TextToSpeech
 
-              private val allContacts = mutableListOf<ContactItem>()
-              private val displayList = ArrayList<String>()
-              private val drawerListItems = ArrayList<String>()
-              
-              private lateinit var listAdapter: ArrayAdapter<String>
-              private lateinit var drawerAdapter: ArrayAdapter<String>
+              val allContacts = mutableListOf<ContactItem>()
+              val displayList = ArrayList<String>()
+              val fullContactsList = ArrayList<String>()
 
               private var isSpeakingNames = false
 
               companion object {
                   private const val PERMISSION_REQUEST_CODE = 101
+                  lateinit var instance: MainActivity
               }
 
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
+                  instance = this
                   setContentView(R.layout.activity_main)
 
-                  btnMic = findViewById(R.id.btnMic)
-                  statusTv = findViewById(R.id.statusTv)
-                  waveTv = findViewById(R.id.waveTv)
-                  listView = findViewById(R.id.listView)
-                  drawerLayout = findViewById(R.id.drawerLayout)
-                  navDrawerList = findViewById(R.id.navDrawerList)
-
-                  listAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, displayList)
-                  listView.adapter = listAdapter
-
-                  drawerAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, drawerListItems)
-                  navDrawerList.adapter = drawerAdapter
+                  viewPager = findViewById(R.id.viewPager)
+                  tabAssistant = findViewById(R.id.tabAssistant)
+                  tabContacts = findViewById(R.id.tabContacts)
 
                   checkPermissions()
                   syncAllData()
@@ -346,8 +305,28 @@ jobs:
                   textToSpeech = TextToSpeech(this, this)
                   setupSpeechRecognizer()
 
-                  btnMic.setOnClickListener {
-                      startVoiceListening()
+                  val pagerAdapter = ViewPagerAdapter(this)
+                  viewPager.adapter = pagerAdapter
+
+                  viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                      override fun onPageSelected(position: Int) {
+                          super.onPageSelected(position)
+                          if (position == 0) {
+                              tabAssistant.setBackgroundColor(Color.parseColor("#1E3A8A"))
+                              tabContacts.setBackgroundColor(Color.parseColor("#475569"))
+                          } else {
+                              tabContacts.setBackgroundColor(Color.parseColor("#1E3A8A"))
+                              tabAssistant.setBackgroundColor(Color.parseColor("#475569"))
+                          }
+                      }
+                  })
+
+                  tabAssistant.setOnClickListener {
+                      viewPager.currentItem = 0
+                  }
+
+                  tabContacts.setOnClickListener {
+                      viewPager.currentItem = 1
                   }
               }
 
@@ -361,12 +340,10 @@ jobs:
                   ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
               }
 
-              private fun syncAllData() {
+              fun syncAllData() {
                   allContacts.clear()
-                  displayList.clear()
-                  drawerListItems.clear()
+                  fullContactsList.clear()
 
-                  // 1. Sync Phone Contacts
                   if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                       val cursor: Cursor? = contentResolver.query(
                           ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -388,7 +365,6 @@ jobs:
                       }
                   }
 
-                  // 2. Sync Call History / Call Log
                   if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
                       val logCursor: Cursor? = contentResolver.query(
                           CallLog.Calls.CONTENT_URI,
@@ -396,30 +372,27 @@ jobs:
                           null, null, CallLog.Calls.DATE + " DESC"
                       )
                       logCursor?.let {
-                          val nameIdx = it.getColumnIndex(CallLog.Calls.CACHED_NAME)
-                          val numIdx = it.getColumnIndex(CallLog.Calls.NUMBER)
-                          while (it.moveToNext()) {
-                              val name = it.getString(nameIdx) ?: "Unknown Caller"
-                              val num = it.getString(numIdx) ?: ""
+                          val nameIdx = logCursor.getColumnIndex(CallLog.Calls.CACHED_NAME)
+                          val numIdx = logCursor.getColumnIndex(CallLog.Calls.NUMBER)
+                          while (logCursor.moveToNext()) {
+                              val name = logCursor.getString(nameIdx) ?: "Unknown Caller"
+                              val num = logCursor.getString(numIdx) ?: ""
                               if (num.isNotEmpty() && !allContacts.any { c -> c.phone == num }) {
                                   allContacts.add(ContactItem(name, num))
                               }
                           }
-                          it.close()
+                          logCursor.close()
                       }
                   }
 
                   for (contact in allContacts) {
-                      drawerListItems.add("${contact.name}\n${contact.phone}")
+                      fullContactsList.add("📇 ${contact.name}\n📱 ${contact.phone}")
                   }
-                  drawerAdapter.notifyDataSetChanged()
 
+                  displayList.clear()
                   for (contact in allContacts.take(15)) {
                       displayList.add("📞 ${contact.name} (${contact.phone})")
                   }
-                  listAdapter.notifyDataSetChanged()
-
-                  statusTv.text = "ZED synced ${allContacts.size} contacts. Tap mic!"
               }
 
               private fun setupSpeechRecognizer() {
@@ -434,19 +407,14 @@ jobs:
                       }
                       override fun onRmsChanged(rmsdB: Float) {}
                       override fun onBufferReceived(buffer: ByteArray?) {}
-                      override fun onEndOfSpeech() {
-                          btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
-                          waveTv.text = " ~ ~ ıllılıl llılıll ~ ~ "
-                      }
+                      override fun onEndOfSpeech() {}
                       override fun onError(error: Int) {
-                          btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
-                          statusTv.text = "Voice not detected. Try again."
+                          Toast.makeText(this@MainActivity, "Voice not detected. Try again.", Toast.LENGTH_SHORT).show()
                       }
                       override fun onResults(results: Bundle?) {
-                          btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
                           val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                           if (!matches.isNullOrEmpty()) {
-                              processZEDCommand(matches[0])
+                              processZCommand(matches[0])
                           }
                       }
                       override fun onPartialResults(partialResults: Bundle?) {}
@@ -454,11 +422,7 @@ jobs:
                   })
               }
 
-              private fun startVoiceListening() {
-                  btnMic.setBackgroundResource(R.drawable.circle_mic_active)
-                  waveTv.text = "🔴 ZED is listening..."
-                  statusTv.text = "Listening to your command..."
-
+              fun startVoiceListening() {
                   val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                       putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
@@ -466,32 +430,37 @@ jobs:
                   speechRecognizer.startListening(intent)
               }
 
-              private fun processZEDCommand(command: String) {
-                  val query = command.replace("zed", "", ignoreCase = true)
-                      .replace("को कॉल लगाओ", "")
-                      .replace("फोन लगाओ", "")
-                      .trim()
+              private fun normalizeQuery(text: String): String {
+                  val lower = text.lowercase(Locale.ROOT)
+                  return lower
+                      .replace("इब्राहिम", "ibrahim")
+                      .replace("इरफ़ान", "irfan")
+                      .replace("इरफान", "irfan")
+                      .replace("सलमान", "salman")
+                      .replace("इरशाद", "irshad")
+                      .replace("जीशान", "zeeshan")
+                      .replace("जुबेर", "zubair")
+                      .replace("को", "").replace("कॉल", "").replace("लगाओ", "").replace("फोन", "")
+                      .replace("call", "").replace("to", "").trim()
+              }
 
-                  statusTv.text = "Understood: \"$query\""
-
-                  val matched = allContacts.filter { it.name.contains(query, ignoreCase = true) }
+              private fun processZCommand(command: String) {
+                  val cleanedQuery = normalizeQuery(command)
+                  val matched = allContacts.filter { 
+                      normalizeQuery(it.name).contains(cleanedQuery, ignoreCase = true) || it.phone.contains(cleanedQuery) 
+                  }
 
                   when {
-                      matched.isEmpty() -> {
-                          speakOut("No contact found with this name.")
-                      }
+                      matched.isEmpty() -> speakOut("No contact found.")
                       matched.size == 1 -> {
                           speakOut("Calling ${matched[0].name}")
                           makePhoneCall(matched[0].phone)
                       }
                       else -> {
-                          var speechText = "Found ${matched.size} contacts matching this name. "
-                          displayList.clear()
-                          matched.forEachIndexed { index, contact ->
-                              speechText += "Number ${index + 1}: ${contact.name}. "
-                              displayList.add("🔸 ${index + 1}. ${contact.name} (${contact.phone})")
+                          var speechText = "Found ${matched.size} contacts. "
+                          matched.forEachIndexed { idx, contact ->
+                              speechText += "Number ${idx + 1}: ${contact.name}. "
                           }
-                          listAdapter.notifyDataSetChanged()
                           speakOut(speechText)
                       }
                   }
@@ -526,6 +495,105 @@ jobs:
                   super.onDestroy()
               }
           }
+
+          class ViewPagerAdapter(activity: AppCompatActivity) : androidx.viewpager2.adapter.FragmentStateAdapter(activity) {
+              override fun getItemCount(): Int = 2
+              override fun createFragment(position: Int): androidx.fragment.app.Fragment {
+                  return if (position == 0) AssistantFragment() else ContactsFragment()
+              }
+          }
+
+          class AssistantFragment : androidx.fragment.app.Fragment() {
+              override fun onCreateView(inflater: android.view.LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+                  val layout = LinearLayout(requireContext()).apply {
+                      orientation = LinearLayout.VERTICAL
+                      gravity = Gravity.CENTER
+                      setPadding(30, 30, 30, 30)
+                      setBackgroundColor(Color.parseColor("#F8FAFC"))
+                  }
+
+                  val statusTv = TextView(requireContext()).apply {
+                      text = "Z Assistant is ready. Tap mic to speak..."
+                      textSize = 16f
+                      setTextColor(Color.parseColor("#1E3A8A"))
+                      gravity = Gravity.CENTER
+                      setPadding(0, 0, 0, 30)
+                  }
+
+                  val btnMic = ImageButton(requireContext()).apply {
+                      layoutParams = LinearLayout.LayoutParams(140, 140).apply { setMargins(0, 0, 0, 20) }
+                      setBackgroundResource(R.drawable.circle_mic_normal)
+                      setImageResource(android.R.drawable.ic_btn_speak_now)
+                      scaleType = ImageView.ScaleType.CENTER_INSIDE
+                      elevation = 12f
+                      contentDescription = "Z Assistant Mic"
+                  }
+
+                  val waveTv = TextView(requireContext()).apply {
+                      text = " ~ ~ ıllılıl llılıll ~ ~ "
+                      textSize = 20f
+                      setTextColor(Color.parseColor("#0EA5E9"))
+                      gravity = Gravity.CENTER
+                      setPadding(0, 0, 0, 20)
+                  }
+
+                  val listView = ListView(requireContext()).apply {
+                      layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+                      background = ContextCompat.getDrawable(requireContext(), R.drawable.list_background)
+                  }
+
+                  val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, MainActivity.instance.displayList)
+                  listView.adapter = adapter
+
+                  btnMic.setOnClickListener {
+                      btnMic.setBackgroundResource(R.drawable.circle_mic_active)
+                      waveTv.text = "🌈✨ Z Assistant is listening..."
+                      statusTv.text = "Listening..."
+                      MainActivity.instance.startVoiceListening()
+                      
+                      btnMic.postDelayed({
+                          btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
+                          waveTv.text = " ~ ~ ıllılıl llılıll ~ ~ "
+                          statusTv.text = "Z Assistant is ready. Tap mic to speak..."
+                      }, 4000)
+                  }
+
+                  layout.addView(statusTv)
+                  layout.addView(btnMic)
+                  layout.addView(waveTv)
+                  layout.addView(listView)
+                  return layout
+              }
+          }
+
+          class ContactsFragment : androidx.fragment.app.Fragment() {
+              override fun onCreateView(inflater: android.view.LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+                  val layout = LinearLayout(requireContext()).apply {
+                      orientation = LinearLayout.VERTICAL
+                      setPadding(20, 20, 20, 20)
+                      setBackgroundColor(Color.parseColor("#F8FAFC"))
+                  }
+
+                  val title = TextView(requireContext()).apply {
+                      text = "📂 All Synced Contacts & History"
+                      textSize = 18f
+                      setTextColor(Color.parseColor("#1E3A8A"))
+                      setPadding(0, 0, 0, 15)
+                  }
+
+                  val listView = ListView(requireContext()).apply {
+                      layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                      background = ContextCompat.getDrawable(requireContext(), R.drawable.list_background)
+                  }
+
+                  val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, MainActivity.instance.fullContactsList)
+                  listView.adapter = adapter
+
+                  layout.addView(title)
+                  layout.addView(listView)
+                  return layout
+              }
+          }
           EOF
 
       - name: Build Debug APK
@@ -534,6 +602,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Zeeshan-Mic-Assistant-APK
+          name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-
