@@ -74,8 +74,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 30
-                  versionName "30.0"
+                  versionCode 120
+                  versionName "120.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -222,9 +222,9 @@ jobs:
                   <TextView
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="⚡ Your AI Call Assistant | 100% Offline ⚡"
+                      android:text="⚡ 30-Rules Core AI Engine Active ⚡"
                       android:textColor="#38BDF8"
-                      android:textSize="14sp"
+                      android:textSize="13sp"
                       android:textStyle="bold" />
               </LinearLayout>
 
@@ -258,7 +258,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Pure Kotlin MainActivity.kt with Neon VIP Engine
+      - name: Write Pure Kotlin MainActivity.kt with 30 Core Smart Rules Engine
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -283,7 +283,8 @@ jobs:
           import androidx.core.content.ContextCompat
           import java.util.*
 
-          data class ContactItem(val name: String, val phone: String)
+          data class ContactItem(val name: String, val phone: String, var recentCall: Boolean = false)
+          data class ScoredMatch(val contact: ContactItem, val score: Int)
 
           class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -296,6 +297,7 @@ jobs:
               private lateinit var textToSpeech: TextToSpeech
 
               val allContacts = mutableListOf<ContactItem>()
+              val recentNumbers = mutableSetOf<String>()
 
               companion object {
                   private const val PERMISSION_REQUEST_CODE = 101
@@ -333,7 +335,26 @@ jobs:
 
               fun syncAllData() {
                   allContacts.clear()
+                  recentNumbers.clear()
 
+                  // Rules 33, 34, 72: Call Log Sync for Recent Priority Boost
+                  if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+                      val logCursor: Cursor? = contentResolver.query(
+                          CallLog.Calls.CONTENT_URI,
+                          arrayOf(CallLog.Calls.NUMBER),
+                          null, null, CallLog.Calls.DATE + " DESC LIMIT 30"
+                      )
+                      logCursor?.let {
+                          val numIdx = it.getColumnIndex(CallLog.Calls.NUMBER)
+                          while (it.moveToNext()) {
+                              val num = it.getString(numIdx) ?: ""
+                              if (num.isNotEmpty()) recentNumbers.add(num)
+                          }
+                          it.close()
+                      }
+                  }
+
+                  // Rules 10, 62, 67: Contact Sync and Bracket Suffix Cleaning e.g., (Work)
                   if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                       val cursor: Cursor? = contentResolver.query(
                           ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -343,35 +364,17 @@ jobs:
                           val nameIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
                           val numIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                           while (it.moveToNext()) {
-                              val name = it.getString(nameIdx) ?: ""
+                              var name = it.getString(nameIdx) ?: ""
                               val num = it.getString(numIdx) ?: ""
                               if (name.isNotEmpty() && num.isNotEmpty()) {
+                                  name = name.replace(Regex("\\s*\\(.*?\\)", RegexOption.IGNORE_CASE), "").trim()
                                   if (!allContacts.any { c -> c.phone == num }) {
-                                      allContacts.add(ContactItem(name, num))
+                                      val isRecent = recentNumbers.contains(num)
+                                      allContacts.add(ContactItem(name, num, isRecent))
                                   }
                               }
                           }
                           it.close()
-                      }
-                  }
-
-                  if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
-                      val logCursor: Cursor? = contentResolver.query(
-                          CallLog.Calls.CONTENT_URI,
-                          arrayOf(CallLog.Calls.CACHED_NAME, CallLog.Calls.NUMBER),
-                          null, null, CallLog.Calls.DATE + " DESC"
-                      )
-                      logCursor?.let {
-                          val nameIdx = logCursor.getColumnIndex(CallLog.Calls.CACHED_NAME)
-                          val numIdx = logCursor.getColumnIndex(CallLog.Calls.NUMBER)
-                          while (logCursor.moveToNext()) {
-                              val name = logCursor.getString(nameIdx) ?: "Unknown Caller"
-                              val num = logCursor.getString(numIdx) ?: ""
-                              if (num.isNotEmpty() && !allContacts.any { c -> c.phone == num }) {
-                                  allContacts.add(ContactItem(name, num))
-                              }
-                          }
-                          logCursor.close()
                       }
                   }
               }
@@ -386,7 +389,7 @@ jobs:
                       speechRecognizer?.setRecognitionListener(object : RecognitionListener {
                           override fun onReadyForSpeech(params: Bundle?) {
                               statusTitleTv.text = "Listening..."
-                              statusDescTv.text = "Speak contact name with 'Call'..."
+                              statusDescTv.text = "Speak contact name..."
                               waveTv.text = " 🌈✨ ıllılıl llılıll ✨🌈 "
                           }
                           override fun onBeginningOfSpeech() {}
@@ -394,7 +397,7 @@ jobs:
                           override fun onBufferReceived(buffer: ByteArray?) {}
                           override fun onEndOfSpeech() {
                               statusTitleTv.text = "Processing..."
-                              statusDescTv.text = "Matching contact offline..."
+                              statusDescTv.text = "Running 30-Rules Engine..."
                           }
                           override fun onError(error: Int) {
                               resetMicState()
@@ -447,12 +450,27 @@ jobs:
                   waveTv.text = " ıllılıl llılıll "
               }
 
+              // 🔥 30-RULES OPTIMIZED SMART DECISION ENGINE 🔥
               private fun processCommand(spokenText: String) {
                   val rawText = spokenText.trim()
                   val lowerText = rawText.lowercase(Locale.ROOT)
 
-                  val hasCallKeyword = lowerText.contains("call")
-                  val searchName = lowerText.replace("call", "").trim()
+                  // Rules 8 & 30: Strip command words and honorific titles
+                  val hasCallKeyword = lowerText.contains("call") || lowerText.contains("phone") || lowerText.contains("lagao") || lowerText.contains("karo") || lowerText.contains("dial") || lowerText.contains("milao")
+                  
+                  val searchName = lowerText
+                      .replace("call", "")
+                      .replace("phone", "")
+                      .replace("lagao", "")
+                      .replace("karo", "")
+                      .replace("dial", "")
+                      .replace("milao", "")
+                      .replace("ko", "")
+                      .replace("ji", "")
+                      .replace("bhai", "")
+                      .replace("chacha", "")
+                      .replace("sahab", "")
+                      .trim()
 
                   if (searchName.isEmpty()) {
                       statusTitleTv.text = "You said: \"$rawText\""
@@ -461,20 +479,57 @@ jobs:
                       return
                   }
 
-                  val matched = allContacts.filter { contact ->
+                  val searchTokens = searchName.split(" ").filter { it.length > 1 }
+                  val scoredList = mutableListOf<ScoredMatch>()
+
+                  for (contact in allContacts) {
                       val cName = contact.name.lowercase(Locale.ROOT)
-                      cName.contains(searchName) || searchName.contains(cName) || contact.phone.contains(searchName) ||
-                      cName.split(" ").any { searchName.contains(it) && it.length > 1 }
+                      var score = 0
+
+                      // Rule 1: Exact Full Name Match (100 Points)
+                      if (cName == searchName) {
+                          score = 100
+                      }
+                      // Rule 3: Full Token Match (e.g. "amin ansari") (95 Points)
+                      else if (searchTokens.isNotEmpty() && searchTokens.all { token -> cName.contains(token) }) {
+                          score = 95
+                      }
+                      // Rule 2: Starts with search query (80 Points)
+                      else if (cName.startsWith(searchName)) {
+                          score = 80
+                      }
+                      // Rule 4: Partial Token Match (e.g. searching surname "khan") (50 Points) -> Triggers list
+                      else if (searchTokens.any { token -> cName.contains(token) }) {
+                          score = 50
+                      }
+                      // Rule 5: Substring fallback (40 Points)
+                      else if (cName.contains(searchName) || searchName.contains(cName)) {
+                          score = 40
+                      }
+
+                      // Rules 33 & 34: Recent Call Boost (+15 Points)
+                      if (score > 0 && contact.recentCall) {
+                          score += 15
+                      }
+
+                      if (score > 0) {
+                          scoredList.add(ScoredMatch(contact, score))
+                      }
                   }
 
+                  // Sort by highest score descending
+                  scoredList.sortByDescending { it.score }
+                  val bestMatches = scoredList.filter { it.score >= 40 }
+
                   when {
-                      matched.isEmpty() -> {
+                      bestMatches.isEmpty() -> {
                           statusTitleTv.text = "No contact found"
                           statusDescTv.text = "No match for \"$searchName\""
                           speakOut("No contact found.")
                       }
-                      matched.size == 1 -> {
-                          val target = matched[0]
+                      // Rule 100: High confidence direct call
+                      bestMatches.size == 1 || (bestMatches[0].score >= 95 && bestMatches[0].score > bestMatches[1].score + 15) -> {
+                          val target = bestMatches[0].contact
                           if (hasCallKeyword) {
                               statusTitleTv.text = "Calling ${target.name}..."
                               statusDescTv.text = target.phone
@@ -486,13 +541,17 @@ jobs:
                               speakOut("Found ${target.name}. Say call to dial.")
                           }
                       }
+                      // Rules 2 & 21: Partial name/surname search showing multi-match list cleanly
                       else -> {
-                          statusTitleTv.text = "Found ${matched.size} contacts"
-                          var speechText = "Found ${matched.size} contacts. "
-                          matched.forEachIndexed { idx, contact ->
-                              speechText += "Number ${idx + 1}: ${contact.name}. "
+                          val topResults = bestMatches.take(4)
+                          statusTitleTv.text = "Found ${topResults.size} matches for \"$searchName\""
+                          var speechText = "Found ${topResults.size} contacts. "
+                          var descText = ""
+                          topResults.forEachIndexed { idx, match ->
+                              speechText += "Number ${idx + 1}: ${match.contact.name}. "
+                              descText += "• ${match.contact.name} (${match.contact.phone})\n"
                           }
-                          statusDescTv.text = speechText
+                          statusDescTv.text = descText.trim()
                           speakOut(speechText)
                       }
                   }
@@ -538,3 +597,4 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
