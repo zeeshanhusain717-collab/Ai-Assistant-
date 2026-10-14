@@ -75,8 +75,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 600
-                  versionName "600.0"
+                  versionCode 800
+                  versionName "800.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -708,9 +708,6 @@ jobs:
                   waveTv = findViewById(R.id.waveTv)
 
                   tts = TextToSpeech(this, this)
-                  speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) {
-                      SpeechRecognizer.createSpeechRecognizer(this).also { it.setRecognitionListener(listener) }
-                  } else null
 
                   btnMic.setOnClickListener {
                       triggerHaptic()
@@ -791,21 +788,38 @@ jobs:
                       requestPermissionsIfNeeded()
                       return
                   }
+                  tts?.stop()
+
+                  // 🔥 ULTRA-SMOOTH FIX: Destroy old instance safely and create a fresh SpeechRecognizer instance on every tap to eliminate ERROR_CLIENT and Dead Object states completely.
+                  try {
+                      speechRecognizer?.destroy()
+                  } catch (e: Exception) {}
+
+                  speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) {
+                      SpeechRecognizer.createSpeechRecognizer(this).also {
+                          it.setRecognitionListener(listener)
+                      }
+                  } else null
+
                   val rec = speechRecognizer
                   if (rec == null) {
                       show("Speech engine unavailable", "Is device par speech recognition nahi hai.")
                       return
                   }
-                  tts?.stop()
-                  rec.cancel()
+
                   btnMic.setBackgroundResource(R.drawable.circle_mic_active)
-                  rec.startListening(
-                      Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                          .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                          .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
-                          .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
-                          .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
-                  )
+                  try {
+                      rec.startListening(
+                          Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                              .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                              .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
+                              .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+                              .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+                      )
+                  } catch (e: Exception) {
+                      resetMic()
+                      show("AI Assistant is Ready", "Mic start nahi ho paaya. Dobara try karein.")
+                  }
               }
 
               private fun handleUtterance(alts: List<String>) {
@@ -862,14 +876,20 @@ jobs:
               }
 
               override fun onStop() {
-                  speechRecognizer?.cancel()
+                  try {
+                      speechRecognizer?.cancel()
+                      speechRecognizer?.destroy()
+                  } catch (e: Exception) {}
+                  speechRecognizer = null
                   tts?.stop()
                   resetMic()
                   super.onStop()
               }
 
               override fun onDestroy() {
-                  speechRecognizer?.destroy()
+                  try {
+                      speechRecognizer?.destroy()
+                  } catch (e: Exception) {}
                   speechRecognizer = null
                   tts?.stop()
                   tts?.shutdown()
