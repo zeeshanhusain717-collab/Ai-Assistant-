@@ -75,8 +75,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 500
-                  versionName "500.0"
+                  versionCode 600
+                  versionName "600.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -299,7 +299,6 @@ jobs:
               object Idle : Dialog()
               data class Confirm(val person: Person, val at: Long) : Dialog()
               data class Choose(val options: List<Person>, val at: Long) : Dialog()
-              data class EmergencyConfirm(val number: String, val at: Long) : Dialog()
           }
 
           data class Outcome(
@@ -316,7 +315,6 @@ jobs:
           object TrilingualVoiceMatcher {
 
               const val DIALOG_TIMEOUT_MS = 20_000L
-              const val EMERGENCY_NEEDS_CONFIRM = true
 
               private const val FULL_TOKEN = 0.82
               private const val WEAK_TOKEN = 0.65
@@ -329,7 +327,6 @@ jobs:
               )
               private val NO = setOf("nahi", "nahin", "no", "nope", "mat")
               private val CANCEL = setOf("cancel", "stop", "ruko", "band", "chodo", "chhodo")
-              private val EMERGENCY = setOf("112", "100", "emergency", "apatkalin", "aapatkalin", "police")
               private val DIAL_VERBS = setOf("call", "dial", "phone", "lagao", "milao", "karo")
 
               private val ORDINAL = mapOf(
@@ -496,13 +493,6 @@ jobs:
                           if (words.any { it in YES }) return callPerson(dialog.person)
                           if (words.any { it in NO || it in CANCEL }) return cancelled()
                       }
-                      is Dialog.EmergencyConfirm -> {
-                          if (words.any { it in YES }) {
-                              return Outcome(Dialog.Idle, "Calling Emergency...", dialog.number,
-                                  "Emergency call kar raha hoon", dialog.number, "Emergency")
-                          }
-                          if (words.any { it in NO || it in CANCEL }) return cancelled()
-                      }
                       is Dialog.Choose -> {
                           ordinalIndex(words)?.let { i ->
                               val p = dialog.options.getOrNull(i)
@@ -521,18 +511,6 @@ jobs:
                       words.all { it in ORDINAL || it in ORDINAL_FILLER }) {
                       return idle("AI Assistant is Ready", "Pehle koi naam boliye.",
                           "Pehle koi naam boliye, phir number bolein.")
-                  }
-
-                  if (words.size <= 3 && words.any { it in EMERGENCY }) {
-                      val num = if ("100" in words || "police" in words) "100" else "112"
-                      return if (EMERGENCY_NEEDS_CONFIRM) {
-                          Outcome(Dialog.EmergencyConfirm(num, now), "Confirm Emergency?",
-                              "Emergency $num: haan ya nahi bolein",
-                              "$num par emergency call karun? Haan ya nahi bolein.")
-                      } else {
-                          Outcome(Dialog.Idle, "Calling Emergency...", num, "Emergency call kar raha hoon",
-                              num, "Emergency")
-                      }
                   }
 
                   val digitWords = words.filter { w -> w.all { it.isDigit() } }
@@ -578,7 +556,6 @@ jobs:
                       Dialog.Idle -> return Dialog.Idle
                       is Dialog.Confirm -> d.at
                       is Dialog.Choose -> d.at
-                      is Dialog.EmergencyConfirm -> d.at
                   }
                   return if (now - at <= DIALOG_TIMEOUT_MS) d else Dialog.Idle
               }
@@ -826,7 +803,6 @@ jobs:
                       Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                           .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                           .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
-                          .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                           .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
                           .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
                   )
@@ -938,4 +914,3 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-
