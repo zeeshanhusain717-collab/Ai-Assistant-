@@ -75,8 +75,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 1000
-                  versionName "1000.0"
+                  versionCode 1001
+                  versionName "1001.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -485,13 +485,11 @@ jobs:
                   waveTv.text = " ıllılıl llılıll "
               }
 
-              // 🔥 SMART DISAMBIGUATION & SAFETY COMMAND PROCESSOR 🔥
               private fun processUniversalCommand(spokenText: String) {
                   try {
                       val rawQuery = spokenText.trim()
                       val cleanQuery = rawQuery.lowercase(Locale.ROOT)
 
-                      // 1. Emergency handling
                       if (cleanQuery.contains("100") || cleanQuery.contains("112") || cleanQuery.contains("emergency")) {
                           val num = if (cleanQuery.contains("112")) "112" else "100"
                           statusTitleTv.text = "Calling Emergency..."
@@ -501,7 +499,6 @@ jobs:
                           return
                       }
 
-                      // 2. Cancel handling
                       if (cleanQuery.contains("cancel") || cleanQuery.contains("band") || cleanQuery.contains("nahi") || cleanQuery.contains("नहीं")) {
                           statusTitleTv.text = "AI Assistant is Ready"
                           statusDescTv.text = "Search cancelled."
@@ -510,7 +507,6 @@ jobs:
                           return
                       }
 
-                      // 3. Selection from Active List (e.g. Number 1, Number 2)
                       if (cleanQuery.contains("number 2") || cleanQuery.contains("दूसरा") || cleanQuery.contains("second") || cleanQuery.contains("दो नंबर")) {
                           dialFromLastShownList(1, "Second contact")
                           return
@@ -524,7 +520,6 @@ jobs:
                           return
                       }
 
-                      // Clean up action words like "call", "dial", "karo", etc. for matching
                       val searchQuery = cleanQuery
                           .replace("call", "")
                           .replace("dial", "")
@@ -545,7 +540,6 @@ jobs:
                           val phoneticContactName = universalPhoneticTransform(contact.name)
                           var score = 0
 
-                          // Exact or Substring match
                           if (contactNameLower == searchQuery || phoneticContactName == phoneticQuery) {
                               score = 100
                           } else if (contactNameLower.contains(searchQuery) || phoneticContactName.contains(phoneticQuery)) {
@@ -575,7 +569,6 @@ jobs:
                               speakOut("No contact found for $rawQuery")
                               lastShownList = emptyList()
                           }
-                          // 🔥 MULTIPLE MATCHES CHECK: If multiple contacts match (e.g. Zeeshan Bagwan & Zeeshan Hussain), NEVER auto-dial! List them out.
                           bestMatches.size > 1 && bestMatches[0].score < 100 -> {
                               val topResults = bestMatches.take(3)
                               lastShownList = topResults.map { it.contact }
@@ -589,19 +582,16 @@ jobs:
                               statusDescTv.text = descText.trim()
                               speakOut(speechText)
                           }
-                          // Single high-confidence match or exact match
                           bestMatches.size == 1 || bestMatches[0].score >= 95 -> {
                               val target = bestMatches[0].contact
                               val contactNameLower = target.name.lowercase(Locale.ROOT)
                               
-                              // 🔥 PHONETIC SAFETY: If user said something like "Kala" and contact is "Khala" (phonetic approximation, not exact spelling), DO NOT auto-dial! Show suggestion and ask confirmation.
                               if (searchQuery.isNotEmpty() && !contactNameLower.contains(searchQuery) && universalPhoneticTransform(target.name) != phoneticQuery) {
                                   lastShownList = listOf(target)
                                   statusTitleTv.text = "Did you mean ${target.name}?"
                                   statusDescTv.text = "Exact match nahi mila. Kya ${target.name} ko call karein?"
                                   speakOut("${searchQuery} नाम नहीं है, क्या ${target.name} को कॉल करें? हां या ना बोलें।")
                               } else {
-                                  // Safe direct call for exact / unique match
                                   statusTitleTv.text = "Calling ${target.name}..."
                                   statusDescTv.text = target.phone
                                   speakOut("Calling ${target.name}")
@@ -609,7 +599,6 @@ jobs:
                               }
                           }
                           else -> {
-                              // Multiple or ambiguous matches -> Show list
                               val topResults = bestMatches.take(3)
                               lastShownList = topResults.map { it.contact }
                               statusTitleTv.text = "Multiple options found"
@@ -701,7 +690,7 @@ jobs:
                   }
               }
 
-              override onDestroy() {
+              override fun onDestroy() {
                   try {
                       speechRecognizer?.destroy()
                   } catch (e: Exception) {}
@@ -724,3 +713,4 @@ jobs:
         with:
           name: Z-Plus-2-Assistant-Call-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
