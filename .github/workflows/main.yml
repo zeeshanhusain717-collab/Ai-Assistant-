@@ -75,8 +75,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 1002
-                  versionName "1002.0"
+                  versionCode 1006
+                  versionName "1006.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -99,7 +99,7 @@ jobs:
           cat > app/src/main/res/values/strings.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <string name="app_name">Zeeshan Assistant Call</string>
+              <string name="app_name">Z + 2 Assistant Call</string>
           </resources>
           EOF
 
@@ -110,9 +110,9 @@ jobs:
               android:height="108dp"
               android:viewportWidth="108"
               android:viewportHeight="108">
-              <path android:fillColor="#0F172A" android:pathData="M0,0h108v108h-108z"/>
+              <path android:fillColor="#0B1315" android:pathData="M0,0h108v108h-108z"/>
               <path android:fillColor="#00F2FE" android:pathData="M24,24h60c6.6,0 12,5.4 12,12v36c0,6.6 -5.4,12 -12,12H24c-6.6,0 -12,-5.4 -12,-12V36c0,-6.6 5.4,-12 12,-12z"/>
-              <path android:fillColor="#0f172a" android:pathData="M30,30h48v48h-48z"/>
+              <path android:fillColor="#0b1315" android:pathData="M30,30h48v48h-48z"/>
               <path android:fillColor="#00F2FE" android:pathData="M54,42c-3.3,0 -6,2.7 -6,6v12c0,3.3 2.7,6 6,6s6,-2.7 6,-6V48c0,-3.3 -2.7,-6 -6,-6z"/>
               <path android:fillColor="#00F2FE" android:pathData="M40,56c0,7.7 6.3,14 14,14s14,-6.3 14,-14h4c0,9.9 -8.1,18 -18,18s-18,-8.1 -18,-18h4z"/>
           </vector>
@@ -121,87 +121,87 @@ jobs:
           # 🔥 VIP 3D Neon Normal Mic Button
           cat > app/src/main/res/drawable/circle_mic_normal.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#00F2FE" android:centerColor="#0369A1" android:endColor="#0F172A" />
-              <stroke android:width="5dp" android:color="#38BDF8" />
+              <gradient android:type="radial" android:gradientRadius="140dp" android:startColor="#00F2FE" android:centerColor="#0369A1" android:endColor="#0B1315" />
+              <stroke android:width="6dp" android:color="#38BDF8" />
           </shape>
           EOF
 
           # 🔥 VIP 3D Neon Active Green Mic Button
           cat > app/src/main/res/drawable/circle_mic_active.xml <<'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <gradient android:type="radial" android:gradientRadius="130dp" android:startColor="#4ADE80" android:centerColor="#16A34A" android:endColor="#064E3B" />
-              <stroke android:width="5dp" android:color="#86EFAC" />
+              <gradient android:type="radial" android:gradientRadius="140dp" android:startColor="#4ADE80" android:centerColor="#16A34A" android:endColor="#064E3B" />
+              <stroke android:width="6dp" android:color="#86EFAC" />
           </shape>
           EOF
 
+          # 🔥 Glassmorphism Card Background
+          cat > app/src/main/res/drawable/glass_card_bg.xml <<'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#B3111E26" />
+              <corners android:radius="24dp" />
+              <stroke android:width="1dp" android:color="#3338BDF8" />
+          </shape>
+          EOF
+
+          # 🔥 Exact Image Matching activity_main.xml Layout 🔥
           cat > app/src/main/res/layout/activity_main.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              android:background="#0F172A">
+              android:background="#0B1315"
+              android:padding="20dp">
 
-              <!-- Top VIP Dark Neon Header Bar -->
+              <!-- Top Branding Header (Matching Image Top Bar) -->
               <LinearLayout
                   android:layout_width="match_parent"
-                  android:layout_height="75dp"
-                  android:background="#1E293B"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
                   android:gravity="center_vertical"
-                  android:paddingHorizontal="24dp"
-                  android:elevation="8dp">
+                  android:layout_marginTop="10dp"
+                  android:layout_marginBottom="20dp">
+
+                  <!-- App Icon Thumbnail -->
+                  <ImageView
+                      android:layout_width="48dp"
+                      android:layout_height="48dp"
+                      android:src="@drawable/ic_app_icon"
+                      android:background="@drawable/glass_card_bg"
+                      android:padding="6ssp"
+                      android:contentDescription="Logo" />
+
                   <TextView
-                      android:layout_width="wrap_content"
+                      android:layout_width="0dp"
                       android:layout_height="wrap_content"
-                      android:text="👑 Zeeshan Assistant Call"
-                      android:textColor="#38BDF8"
+                      android:layout_weight="1"
+                      android:text="Z + 2 Assistant\nCall"
+                      android:textColor="#FFFFFF"
                       android:textSize="20sp"
-                      android:textStyle="bold" />
+                      android:textStyle="bold"
+                      android:layout_marginStart="16dp" />
+
               </LinearLayout>
 
-              <!-- Center Neon Layout -->
+              <!-- Center Voice Interaction Area -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
                   android:layout_weight="1"
                   android:orientation="vertical"
-                  android:gravity="center"
-                  android:padding="24dp">
+                  android:gravity="center">
 
                   <TextView
                       android:id="@+id/statusTitleTv"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="AI Assistant is Ready"
+                      android:text="Listening..."
                       android:textSize="22sp"
                       android:textColor="#FFFFFF"
                       android:textStyle="bold"
-                      android:gravity="center"
-                      android:layout_marginBottom="10dp" />
+                      android:layout_marginBottom="12dp" />
 
-                  <TextView
-                      android:id="@+id/statusDescTv"
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="Tap mic and speak naturally"
-                      android:textSize="15sp"
-                      android:textColor="#94A3B8"
-                      android:gravity="center"
-                      android:layout_marginBottom="45dp" />
-
-                  <!-- Centered 3D Neon Mic Button -->
-                  <ImageButton
-                      android:id="@+id/btnMic"
-                      android:layout_width="170dp"
-                      android:layout_height="170dp"
-                      android:background="@drawable/circle_mic_normal"
-                      android:src="@android:drawable/ic_btn_speak_now"
-                      android:scaleType="centerInside"
-                      android:elevation="20dp"
-                      android:contentDescription="VIP Neon Mic"
-                      android:layout_marginBottom="45dp" />
-
-                  <!-- Audio Wave Animation Indicator -->
+                  <!-- Audio Wave Visualization Bars -->
                   <TextView
                       android:id="@+id/waveTv"
                       android:layout_width="wrap_content"
@@ -209,24 +209,140 @@ jobs:
                       android:text=" ıllılıl llılıll "
                       android:textSize="32sp"
                       android:textColor="#00F2FE"
-                      android:gravity="center" />
+                      android:layout_marginBottom="40dp" />
+
+                  <!-- Centered 3D Neon Mic Button (Exact Image Match) -->
+                  <ImageButton
+                      android:id="@+id/btnMic"
+                      android:layout_width="180dp"
+                      android:layout_height="180dp"
+                      android:background="@drawable/circle_mic_normal"
+                      android:src="@android:drawable/ic_btn_speak_now"
+                      android:scaleType="centerInside"
+                      android:elevation="24dp"
+                      android:contentDescription="3D Neon Mic"
+                      android:layout_marginBottom="40dp" />
+
+                  <!-- Glassmorphism Status Card (Matching Image Card) -->
+                  <LinearLayout
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:background="@drawable/glass_card_bg"
+                      android:orientation="horizontal"
+                      android:gravity="center_vertical"
+                      android:padding="16dp">
+
+                      <!-- Glowing Green Dot -->
+                      <View
+                          android:layout_width="14dp"
+                          android:layout_height="14dp"
+                          android:background="@drawable/circle_mic_active"
+                          android:layout_marginEnd="16dp" />
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="vertical">
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="Your AI Call Assistant"
+                              android:textColor="#FFFFFF"
+                              android:textSize="15sp"
+                              android:textStyle="bold" />
+
+                          <TextView
+                              android:id="@+id/statusDescTv"
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="Listening..."
+                              android:textColor="#94A3B8"
+                              android:textSize="13sp" />
+
+                      </LinearLayout>
+                  </LinearLayout>
 
               </LinearLayout>
 
-              <!-- Bottom VIP Single Neon Footer Bar -->
+              <!-- Bottom Dual Navigation Bar (Matching Image Bottom Tabs) -->
               <LinearLayout
                   android:layout_width="match_parent"
-                  android:layout_height="65dp"
-                  android:background="#1E293B"
-                  android:gravity="center"
-                  android:elevation="8dp">
-                  <TextView
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="⚡ Native Offline-Ready Voice Engine ⚡"
-                      android:textColor="#38BDF8"
-                      android:textSize="13sp"
-                      android:textStyle="bold" />
+                  android:layout_height="75dp"
+                  android:orientation="horizontal"
+                  android:layout_marginTop="10dp"
+                  android:weightSum="2">
+
+                  <!-- Z Assistant Tab (Active) -->
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:background="@drawable/glass_card_bg"
+                      android:orientation="vertical"
+                      android:gravity="center"
+                      android:layout_marginEnd="8dp">
+
+                      <LinearLayout
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:orientation="horizontal"
+                          android:gravity="center_vertical">
+                          <ImageView
+                              android:layout_width="20dp"
+                              android:layout_height="20dp"
+                              android:src="@android:drawable/stat_sys_phone_call"
+                              android:tint="#4ADE80"
+                              android:contentDescription="Call" />
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="Z ASSISTANT"
+                              android:textColor="#4ADE80"
+                              android:textSize="13sp"
+                              android:textStyle="bold"
+                              android:layout_marginStart="8dp" />
+                      </LinearLayout>
+
+                      <!-- Green Active Underline Indicator -->
+                      <View
+                          android:layout_width="40dp"
+                          android:layout_height="3dp"
+                          android:background="#4ADE80"
+                          android:layout_marginTop="6dp" />
+
+                  </LinearLayout>
+
+                  <!-- Contacts / Directory Tab -->
+                  <LinearLayout
+                      android:id="@+id/btnOpenDirectoryCard"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:background="@drawable/glass_card_bg"
+                      android:orientation="horizontal"
+                      android:gravity="center"
+                      android:layout_marginStart="8dp"
+                      android:clickable="true"
+                      android:focusable="true">
+
+                      <ImageView
+                          android:layout_width="22dp"
+                          android:layout_height="22dp"
+                          android:src="@android:drawable/ic_menu_my_calendar"
+                          android:tint="#94A3B8"
+                          android:contentDescription="Contacts" />
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="CONTACTS"
+                          android:textColor="#94A3B8"
+                          android:textSize="13sp"
+                          android:textStyle="bold"
+                          android:layout_marginStart="8dp" />
+
+                  </LinearLayout>
+
               </LinearLayout>
 
           </LinearLayout>
@@ -262,63 +378,71 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Native Clean MainActivity.kt
+      - name: Write Complete Pixel-Perfect MainActivity.kt
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
 
           import android.Manifest
+          import android.app.AlertDialog
           import android.content.Context
           import android.content.Intent
+          import android.content.SharedPreferences
           import android.content.pm.PackageManager
           import android.database.Cursor
+          import android.graphics.Color
           import android.net.Uri
           import android.os.Bundle
           import android.os.VibrationEffect
           import android.os.Vibrator
-          import android.provider.CallLog
           import android.provider.ContactsContract
           import android.speech.RecognitionListener
           import android.speech.RecognizerIntent
           import android.speech.SpeechRecognizer
           import android.speech.tts.TextToSpeech
-          import android.widget.ImageButton
-          import android.widget.TextView
-          import android.widget.Toast
+          import android.view.Gravity
+          import android.view.View
+          import android.widget.*
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
           import java.util.*
 
-          data class ContactItem(val name: String, val phone: String)
+          data class ContactItem(val name: String, val phone: String, var mappedAlias: String = "", var isShown: Boolean = false)
 
           class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
               private lateinit var btnMic: ImageButton
+              private lateinit var btnOpenDirectoryCard: LinearLayout
               private lateinit var statusTitleTv: TextView
               private lateinit var statusDescTv: TextView
               private lateinit var waveTv: TextView
 
               private var speechRecognizer: SpeechRecognizer? = null
               private lateinit var textToSpeech: TextToSpeech
+              private lateinit var sharedPrefs: SharedPreferences
 
               val allContacts = mutableListOf<ContactItem>()
 
               companion object {
                   private const val PERMISSION_REQUEST_CODE = 101
+                  private const val PREFS_NAME = "ZeeshanMappingPrefs"
               }
 
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
                   setContentView(R.layout.activity_main)
 
+                  sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
                   btnMic = findViewById(R.id.btnMic)
+                  btnOpenDirectoryCard = findViewById(R.id.btnOpenDirectoryCard)
                   statusTitleTv = findViewById(R.id.statusTitleTv)
                   statusDescTv = findViewById(R.id.statusDescTv)
                   waveTv = findViewById(R.id.waveTv)
 
                   checkPermissions()
-                  syncContactsSafely()
+                  syncContactsWithMappings()
 
                   textToSpeech = TextToSpeech(this, this)
                   setupSpeechRecognizer()
@@ -326,6 +450,11 @@ jobs:
                   btnMic.setOnClickListener {
                       triggerHaptic()
                       startListeningProcess()
+                  }
+
+                  btnOpenDirectoryCard.setOnClickListener {
+                      triggerHaptic()
+                      showDirectoryScreen()
                   }
               }
 
@@ -353,7 +482,7 @@ jobs:
                   } catch (e: Exception) {}
               }
 
-              private fun syncContactsSafely() {
+              private fun syncContactsWithMappings() {
                   try {
                       allContacts.clear()
                       if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
@@ -369,7 +498,9 @@ jobs:
                                   val num = it.getString(numIdx) ?: ""
                                   if (name.isNotEmpty() && num.isNotEmpty()) {
                                       if (!allContacts.any { c -> c.phone == num }) {
-                                          allContacts.add(ContactItem(name, num))
+                                          val savedAlias = sharedPrefs.getString("alias_$num", "") ?: ""
+                                          val shown = savedAlias.isNotEmpty()
+                                          allContacts.add(ContactItem(name, num, savedAlias, shown))
                                       }
                                   }
                               }
@@ -381,6 +512,198 @@ jobs:
                   }
               }
 
+              // 🔥 DIRECTORY & MAPPING SCREEN (Opened via CONTACTS tab) 🔥
+              private fun showDirectoryScreen() {
+                  syncContactsWithMappings()
+
+                  val dialogView = LinearLayout(this).apply {
+                      orientation = LinearLayout.VERTICAL
+                      setBackgroundColor(Color.parseColor("#0B1315"))
+                      setPadding(30, 30, 30, 30)
+                  }
+
+                  val titleTv = TextView(this).apply {
+                      text = "👑 Manage Contacts (Green = Shown)"
+                      setTextColor(Color.parseColor("#38BDF8"))
+                      textSize = 18f
+                      setPadding(0, 0, 0, 20)
+                      gravity = Gravity.CENTER
+                  }
+                  dialogView.addView(titleTv)
+
+                  val scrollView = ScrollView(this).apply {
+                      layoutParams = LinearLayout.LayoutParams(
+                          LinearLayout.LayoutParams.MATCH_PARENT,
+                          1200
+                      )
+                  }
+
+                  val containerLayout = LinearLayout(this).apply {
+                      orientation = LinearLayout.VERTICAL
+                  }
+                  scrollView.addView(containerLayout)
+                  dialogView.addView(scrollView)
+
+                  for (contact in allContacts) {
+                      val itemLayout = LinearLayout(this).apply {
+                          orientation = LinearLayout.VERTICAL
+                          setPadding(20, 20, 20, 20)
+                          // Green indicator background if shown (#064E3B), else dark glass card (#16202A)
+                          setBackgroundColor(if (contact.isShown) Color.parseColor("#064E3B") else Color.parseColor("#16202A"))
+                          val params = LinearLayout.LayoutParams(
+                              LinearLayout.LayoutParams.MATCH_PARENT,
+                              LinearLayout.LayoutParams.WRAP_CONTENT
+                          )
+                          params.setMargins(0, 0, 0, 15)
+                          layoutParams = params
+                      }
+
+                      val nameTv = TextView(this).apply {
+                          text = "Name: ${contact.name}"
+                          setTextColor(Color.parseColor("#FFFFFF"))
+                          textSize = 15f
+                          textStyle = android.graphics.Typeface.BOLD
+                      }
+
+                      val detailsTv = TextView(this).apply {
+                          text = "Phone: ${contact.phone} | Mapped: ${if(contact.isShown) contact.mappedAlias else "Not Shown"}"
+                          setTextColor(if (contact.isShown) Color.parseColor("#86EFAC") else Color.parseColor("#94A3B8"))
+                          textSize = 13f
+                      }
+
+                      itemLayout.addView(nameTv)
+                      itemLayout.addView(detailsTv)
+
+                      itemLayout.setOnClickListener {
+                          showMappingDialog(contact)
+                      }
+
+                      containerLayout.addView(itemLayout)
+                  }
+
+                  val closeBtn = Button(this).apply {
+                      text = "Back to Assistant"
+                      setBackgroundColor(Color.parseColor("#38BDF8"))
+                      setTextColor(Color.parseColor("#0B1315"))
+                      setPadding(20, 10, 20, 10)
+                      layoutParams = LinearLayout.LayoutParams(
+                          LinearLayout.LayoutParams.MATCH_PARENT,
+                          LinearLayout.LayoutParams.WRAP_CONTENT
+                      ).apply { topMargin = 20 }
+                  }
+
+                  dialogView.addView(closeBtn)
+
+                  val dialog = AlertDialog.Builder(this)
+                      .setView(dialogView)
+                      .create()
+
+                  closeBtn.setOnClickListener { dialog.dismiss() }
+                  dialog.show()
+              }
+
+              // 🔥 MAPPING DIALOG WITH VOICE-TYPING MIC & SHOW BUTTON 🔥
+              private fun showMappingDialog(contact: ContactItem) {
+                  val layout = LinearLayout(this).apply {
+                      orientation = LinearLayout.VERTICAL
+                      setBackgroundColor(Color.parseColor("#16202A"))
+                      setPadding(40, 40, 40, 40)
+                  }
+
+                  val infoTv = TextView(this).apply {
+                      text = "Map Voice Name for:\n${contact.name}\n(${contact.phone})"
+                      setTextColor(Color.parseColor("#FFFFFF"))
+                      textSize = 16f
+                      setPadding(0, 0, 0, 20)
+                  }
+                  layout.addView(infoTv)
+
+                  val rowLayout = LinearLayout(this).apply {
+                      orientation = LinearLayout.HORIZONTAL
+                      gravity = Gravity.CENTER_VERTICAL
+                  }
+
+                  val aliasInput = EditText(this).apply {
+                      hint = "Type or speak name (e.g. Appu)"
+                      setText(contact.mappedAlias)
+                      setTextColor(Color.parseColor("#FFFFFF"))
+                      setHintTextColor(Color.parseColor("#94A3B8"))
+                      layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                  }
+                  rowLayout.addView(aliasInput)
+
+                  // Voice Type Mic Button inside Mapping Dialog
+                  val smallMicBtn = ImageButton(this).apply {
+                      setImageResource(android.R.drawable.ic_btn_speak_now)
+                      setBackgroundColor(Color.parseColor("#0369A1"))
+                      setPadding(15, 15, 15, 15)
+                      contentDescription = "Voice Type"
+                      layoutParams = LinearLayout.LayoutParams(100, 100).apply { leftMargin = 10 }
+                  }
+                  rowLayout.addView(smallMicBtn)
+                  layout.addView(rowLayout)
+
+                  smallMicBtn.setOnClickListener {
+                      triggerHaptic()
+                      Toast.makeText(this, "Listening for name...", Toast.LENGTH_SHORT).show()
+                      val voiceIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                          putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                          putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString())
+                          putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+                      }
+                      val tempRecognizer = SpeechRecognizer.createSpeechRecognizer(applicationContext)
+                      tempRecognizer.setRecognitionListener(object : RecognitionListener {
+                          override fun onReadyForSpeech(params: Bundle?) {}
+                          override fun onBeginningOfSpeech() {}
+                          override fun onRmsChanged(rmsdB: Float) {}
+                          override fun onBufferReceived(buffer: ByteArray?) {}
+                          override fun onEndOfSpeech() {}
+                          override fun onError(error: Int) {
+                              Toast.makeText(this@MainActivity, "Voice capture failed", Toast.LENGTH_SHORT).show()
+                          }
+                          override fun onResults(results: Bundle?) {
+                              val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                              if (!matches.isNullOrEmpty()) {
+                                  aliasInput.setText(matches[0].trim())
+                              }
+                          }
+                          override fun onPartialResults(partialResults: Bundle?) {}
+                          override fun onEvent(eventType: Int, params: Bundle?) {}
+                      })
+                      tempRecognizer.startListening(voiceIntent)
+                  }
+
+                  val showBtn = Button(this).apply {
+                      text = "SHOW (Save Mapped Name)"
+                      setBackgroundColor(Color.parseColor("#4ADE80"))
+                      setTextColor(Color.parseColor("#0B1315"))
+                      textStyle = android.graphics.Typeface.BOLD
+                      layoutParams = LinearLayout.LayoutParams(
+                          LinearLayout.LayoutParams.MATCH_PARENT,
+                          LinearLayout.LayoutParams.WRAP_CONTENT
+                      ).apply { topMargin = 30 }
+                  }
+                  layout.addView(showBtn)
+
+                  val mapDialog = AlertDialog.Builder(this)
+                      .setView(layout)
+                      .create()
+
+                  showBtn.setOnClickListener {
+                      val newAlias = aliasInput.text.toString().trim().lowercase(Locale.ROOT)
+                      if (newAlias.isNotEmpty()) {
+                          sharedPrefs.edit().putString("alias_${contact.phone}", newAlias).apply()
+                          Toast.makeText(this, "Successfully Shown & Saved!", Toast.LENGTH_SHORT).show()
+                          mapDialog.dismiss()
+                          showDirectoryScreen()
+                      } else {
+                          Toast.makeText(this, "Please enter or speak a valid name.", Toast.LENGTH_SHORT).show()
+                      }
+                  }
+
+                  mapDialog.show()
+              }
+
               private fun setupSpeechRecognizer() {
                   try {
                       if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -388,32 +711,32 @@ jobs:
                               speechRecognizer?.destroy()
                           } catch (e: Exception) {}
 
-                          speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+                          speechRecognizer = SpeechRecognizer.createSpeechRecognizer(applicationContext)
                           speechRecognizer?.setRecognitionListener(object : RecognitionListener {
                               override fun onReadyForSpeech(params: Bundle?) {
                                   statusTitleTv.text = "Listening..."
-                                  statusDescTv.text = "Speak contact name..."
-                                  waveTv.text = " 🌈✨ ıllılıl llılıll ✨🌈 "
+                                  statusDescTv.text = "Listening for mapped name..."
+                                  waveTv.text = " ıllılıl llılıll "
                               }
                               override fun onBeginningOfSpeech() {}
                               override fun onRmsChanged(rmsdB: Float) {}
                               override fun onBufferReceived(buffer: ByteArray?) {}
                               override fun onEndOfSpeech() {
                                   statusTitleTv.text = "Processing..."
-                                  statusDescTv.text = "Finding contact..."
+                                  statusDescTv.text = "Matching directory..."
                               }
                               override fun onError(error: Int) {
                                   resetMicState()
-                                  statusTitleTv.text = "AI Assistant is Ready"
-                                  statusDescTv.text = "Tap mic and speak."
+                                  statusTitleTv.text = "AI Assistant Ready"
+                                  statusDescTv.text = "Tap mic to speak."
                               }
                               override fun onResults(results: Bundle?) {
                                   resetMicState()
                                   val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                                   if (!matches.isNullOrEmpty()) {
-                                      processVoiceCommand(matches[0])
+                                      processMappedVoiceCommand(matches[0])
                                   } else {
-                                      statusTitleTv.text = "AI Assistant is Ready"
+                                      statusTitleTv.text = "AI Assistant Ready"
                                       statusDescTv.text = "Kuch sunai nahi diya."
                                   }
                               }
@@ -437,10 +760,12 @@ jobs:
                           if (speechRecognizer == null) {
                               setupSpeechRecognizer()
                           }
+                          
                           val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                               putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                              putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
-                              putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+                              putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString())
+                              putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+                              putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                           }
                           speechRecognizer?.startListening(intent)
                       } else {
@@ -454,35 +779,38 @@ jobs:
 
               private fun resetMicState() {
                   btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
+                  statusTitleTv.text = "AI Assistant Ready"
+                  statusDescTv.text = "Tap mic and speak naturally"
                   waveTv.text = " ıllılıl llılıll "
               }
 
-              private fun processVoiceCommand(spokenText: String) {
+              private fun processMappedVoiceCommand(spokenText: String) {
                   try {
                       val query = spokenText.trim().lowercase(Locale.ROOT)
-                      
-                      // Find best matching contact from local phonebook
+                      syncContactsWithMappings()
+
                       var matchedContact: ContactItem? = null
                       for (contact in allContacts) {
-                          val contactName = contact.name.lowercase(Locale.ROOT)
-                          if (contactName.contains(query) || query.contains(contactName)) {
-                              matchedContact = contact
-                              break
+                          if (contact.isShown && contact.mappedAlias.isNotEmpty()) {
+                              if (query.contains(contact.mappedAlias) || contact.mappedAlias.contains(query)) {
+                                  matchedContact = contact
+                                  break
+                              }
                           }
                       }
 
                       if (matchedContact != null) {
                           statusTitleTv.text = "Calling ${matchedContact.name}..."
                           statusDescTv.text = matchedContact.phone
-                          speakOut("Calling ${matchedContact.name}")
+                          speakOut("Calling ${matchedContact.mappedAlias}")
                           makePhoneCall(matchedContact.phone)
                       } else {
-                          statusTitleTv.text = "Not found"
-                          statusDescTv.text = "\"$spokenText\" nahi mila."
-                          speakOut("$spokenText naam ka contact nahi mila.")
+                          statusTitleTv.text = "Not Shown"
+                          statusDescTv.text = "\"$spokenText\" directory me shown nahi hai."
+                          speakOut("$spokenText naam directory me shown nahi hai.")
                       }
                   } catch (e: Exception) {
-                      statusTitleTv.text = "AI Assistant is Ready"
+                      statusTitleTv.text = "AI Assistant Ready"
                       statusDescTv.text = "Try again."
                   }
               }
