@@ -75,8 +75,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 1001
-                  versionName "1001.0"
+                  versionCode 1002
+                  versionName "1002.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -223,7 +223,7 @@ jobs:
                   <TextView
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="⚡ Universal Smart Disambiguation Engine ⚡"
+                      android:text="⚡ Native Offline-Ready Voice Engine ⚡"
                       android:textColor="#38BDF8"
                       android:textSize="13sp"
                       android:textStyle="bold" />
@@ -262,7 +262,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write Smart MainActivity.kt
+      - name: Write Native Clean MainActivity.kt
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -282,7 +282,6 @@ jobs:
           import android.speech.RecognizerIntent
           import android.speech.SpeechRecognizer
           import android.speech.tts.TextToSpeech
-          import android.telephony.TelephonyManager
           import android.widget.ImageButton
           import android.widget.TextView
           import android.widget.Toast
@@ -291,8 +290,7 @@ jobs:
           import androidx.core.content.ContextCompat
           import java.util.*
 
-          data class ContactItem(val name: String, val phone: String, var recentCall: Boolean = false)
-          data class ScoredMatch(val contact: ContactItem, val score: Int)
+          data class ContactItem(val name: String, val phone: String)
 
           class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -305,8 +303,6 @@ jobs:
               private lateinit var textToSpeech: TextToSpeech
 
               val allContacts = mutableListOf<ContactItem>()
-              val recentNumbers = mutableSetOf<String>()
-              var lastShownList = listOf<ContactItem>()
 
               companion object {
                   private const val PERMISSION_REQUEST_CODE = 101
@@ -322,7 +318,7 @@ jobs:
                   waveTv = findViewById(R.id.waveTv)
 
                   checkPermissions()
-                  syncAllDataSafely()
+                  syncContactsSafely()
 
                   textToSpeech = TextToSpeech(this, this)
                   setupSpeechRecognizer()
@@ -337,10 +333,8 @@ jobs:
                   try {
                       val permissions = arrayOf(
                           Manifest.permission.READ_CONTACTS,
-                          Manifest.permission.READ_CALL_LOG,
                           Manifest.permission.CALL_PHONE,
-                          Manifest.permission.RECORD_AUDIO,
-                          Manifest.permission.READ_PHONE_STATE
+                          Manifest.permission.RECORD_AUDIO
                       )
                       ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
                   } catch (e: Exception) {
@@ -359,29 +353,9 @@ jobs:
                   } catch (e: Exception) {}
               }
 
-              private fun syncAllDataSafely() {
+              private fun syncContactsSafely() {
                   try {
                       allContacts.clear()
-                      recentNumbers.clear()
-
-                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
-                          val logCursor: Cursor? = contentResolver.query(
-                              CallLog.Calls.CONTENT_URI,
-                              arrayOf(CallLog.Calls.NUMBER),
-                              null, null, CallLog.Calls.DATE + " DESC"
-                          )
-                          logCursor?.let {
-                              val numIdx = it.getColumnIndex(CallLog.Calls.NUMBER)
-                              var count = 0
-                              while (it.moveToNext() && count < 30) {
-                                  val num = it.getString(numIdx) ?: ""
-                                  if (num.isNotEmpty()) recentNumbers.add(num)
-                                  count++
-                              }
-                              it.close()
-                          }
-                      }
-
                       if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                           val cursor: Cursor? = contentResolver.query(
                               ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -391,13 +365,11 @@ jobs:
                               val nameIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
                               val numIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                               while (it.moveToNext()) {
-                                  var name = it.getString(nameIdx) ?: ""
+                                  val name = it.getString(nameIdx) ?: ""
                                   val num = it.getString(numIdx) ?: ""
                                   if (name.isNotEmpty() && num.isNotEmpty()) {
-                                      name = name.replace(Regex("\\s*\\(.*?\\)", RegexOption.IGNORE_CASE), "").trim()
                                       if (!allContacts.any { c -> c.phone == num }) {
-                                          val isRecent = recentNumbers.contains(num)
-                                          allContacts.add(ContactItem(name, num, isRecent))
+                                          allContacts.add(ContactItem(name, num))
                                       }
                                   }
                               }
@@ -420,7 +392,7 @@ jobs:
                           speechRecognizer?.setRecognitionListener(object : RecognitionListener {
                               override fun onReadyForSpeech(params: Bundle?) {
                                   statusTitleTv.text = "Listening..."
-                                  statusDescTv.text = "Speak naturally..."
+                                  statusDescTv.text = "Speak contact name..."
                                   waveTv.text = " 🌈✨ ıllılıl llılıll ✨🌈 "
                               }
                               override fun onBeginningOfSpeech() {}
@@ -428,7 +400,7 @@ jobs:
                               override fun onBufferReceived(buffer: ByteArray?) {}
                               override fun onEndOfSpeech() {
                                   statusTitleTv.text = "Processing..."
-                                  statusDescTv.text = "Smart Disambiguation Engine Active..."
+                                  statusDescTv.text = "Finding contact..."
                               }
                               override fun onError(error: Int) {
                                   resetMicState()
@@ -439,10 +411,10 @@ jobs:
                                   resetMicState()
                                   val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                                   if (!matches.isNullOrEmpty()) {
-                                      processUniversalCommand(matches[0])
+                                      processVoiceCommand(matches[0])
                                   } else {
-                                      statusTitleTv.text = "No speech heard"
-                                      statusDescTv.text = "Speak clearly to dial."
+                                      statusTitleTv.text = "AI Assistant is Ready"
+                                      statusDescTv.text = "Kuch sunai nahi diya."
                                   }
                               }
                               override fun onPartialResults(partialResults: Bundle?) {}
@@ -485,163 +457,33 @@ jobs:
                   waveTv.text = " ıllılıl llılıll "
               }
 
-              private fun processUniversalCommand(spokenText: String) {
+              private fun processVoiceCommand(spokenText: String) {
                   try {
-                      val rawQuery = spokenText.trim()
-                      val cleanQuery = rawQuery.lowercase(Locale.ROOT)
-
-                      if (cleanQuery.contains("100") || cleanQuery.contains("112") || cleanQuery.contains("emergency")) {
-                          val num = if (cleanQuery.contains("112")) "112" else "100"
-                          statusTitleTv.text = "Calling Emergency..."
-                          statusDescTv.text = num
-                          speakOut("Calling Emergency")
-                          makePhoneCall(num)
-                          return
-                      }
-
-                      if (cleanQuery.contains("cancel") || cleanQuery.contains("band") || cleanQuery.contains("nahi") || cleanQuery.contains("नहीं")) {
-                          statusTitleTv.text = "AI Assistant is Ready"
-                          statusDescTv.text = "Search cancelled."
-                          speakOut("Cancelled.")
-                          lastShownList = emptyList()
-                          return
-                      }
-
-                      if (cleanQuery.contains("number 2") || cleanQuery.contains("दूसरा") || cleanQuery.contains("second") || cleanQuery.contains("दो नंबर")) {
-                          dialFromLastShownList(1, "Second contact")
-                          return
-                      }
-                      if (cleanQuery.contains("number 1") || cleanQuery.contains("पहला") || cleanQuery.contains("first") || cleanQuery.contains("एक नंबर")) {
-                          dialFromLastShownList(0, "First contact")
-                          return
-                      }
-                      if (cleanQuery.contains("number 3") || cleanQuery.contains("तीसरा") || cleanQuery.contains("third") || cleanQuery.contains("तीन नंबर")) {
-                          dialFromLastShownList(2, "Third contact")
-                          return
-                      }
-
-                      val searchQuery = cleanQuery
-                          .replace("call", "")
-                          .replace("dial", "")
-                          .replace("phone", "")
-                          .replace("lagao", "")
-                          .replace("milao", "")
-                          .replace("karo", "")
-                          .replace("ko", "")
-                          .trim()
-
-                      val phoneticQuery = universalPhoneticTransform(searchQuery)
-                      val queryTokens = phoneticQuery.split("\\s+".toRegex()).filter { it.length > 1 }
-
-                      val scoredList = mutableListOf<ScoredMatch>()
-
+                      val query = spokenText.trim().lowercase(Locale.ROOT)
+                      
+                      // Find best matching contact from local phonebook
+                      var matchedContact: ContactItem? = null
                       for (contact in allContacts) {
-                          val contactNameLower = contact.name.lowercase(Locale.ROOT)
-                          val phoneticContactName = universalPhoneticTransform(contact.name)
-                          var score = 0
-
-                          if (contactNameLower == searchQuery || phoneticContactName == phoneticQuery) {
-                              score = 100
-                          } else if (contactNameLower.contains(searchQuery) || phoneticContactName.contains(phoneticQuery)) {
-                              score = 85
-                          } else if (queryTokens.isNotEmpty() && queryTokens.all { token -> phoneticContactName.contains(token) }) {
-                              score = 75
-                          } else if (queryTokens.isNotEmpty() && queryTokens.any { token -> phoneticContactName.contains(token) }) {
-                              score = 55
-                          }
-
-                          if (score > 0 && contact.recentCall) {
-                              score += 15
-                          }
-
-                          if (score > 0) {
-                              scoredList.add(ScoredMatch(contact, score))
+                          val contactName = contact.name.lowercase(Locale.ROOT)
+                          if (contactName.contains(query) || query.contains(contactName)) {
+                              matchedContact = contact
+                              break
                           }
                       }
 
-                      scoredList.sortByDescending { it.score }
-                      val bestMatches = scoredList.filter { it.score >= 50 }
-
-                      when {
-                          bestMatches.isEmpty() -> {
-                              statusTitleTv.text = "No contact found"
-                              statusDescTv.text = "No contact found for \"$rawQuery\""
-                              speakOut("No contact found for $rawQuery")
-                              lastShownList = emptyList()
-                          }
-                          bestMatches.size > 1 && bestMatches[0].score < 100 -> {
-                              val topResults = bestMatches.take(3)
-                              lastShownList = topResults.map { it.contact }
-                              statusTitleTv.text = "Multiple matches found for \"$rawQuery\""
-                              var speechText = "एक से ज्यादा नाम मिले हैं। "
-                              var descText = ""
-                              topResults.forEachIndexed { idx, match ->
-                                  speechText += "नंबर ${idx + 1}: ${match.contact.name}. "
-                                  descText += "${idx + 1}. ${match.contact.name} (${match.contact.phone})\n"
-                              }
-                              statusDescTv.text = descText.trim()
-                              speakOut(speechText)
-                          }
-                          bestMatches.size == 1 || bestMatches[0].score >= 95 -> {
-                              val target = bestMatches[0].contact
-                              val contactNameLower = target.name.lowercase(Locale.ROOT)
-                              
-                              if (searchQuery.isNotEmpty() && !contactNameLower.contains(searchQuery) && universalPhoneticTransform(target.name) != phoneticQuery) {
-                                  lastShownList = listOf(target)
-                                  statusTitleTv.text = "Did you mean ${target.name}?"
-                                  statusDescTv.text = "Exact match nahi mila. Kya ${target.name} ko call karein?"
-                                  speakOut("${searchQuery} नाम नहीं है, क्या ${target.name} को कॉल करें? हां या ना बोलें।")
-                              } else {
-                                  statusTitleTv.text = "Calling ${target.name}..."
-                                  statusDescTv.text = target.phone
-                                  speakOut("Calling ${target.name}")
-                                  makePhoneCall(target.phone)
-                              }
-                          }
-                          else -> {
-                              val topResults = bestMatches.take(3)
-                              lastShownList = topResults.map { it.contact }
-                              statusTitleTv.text = "Multiple options found"
-                              var speechText = "कई नाम मिले हैं। "
-                              var descText = ""
-                              topResults.forEachIndexed { idx, match ->
-                                  speechText += "नंबर ${idx + 1}: ${match.contact.name}. "
-                                  descText += "${idx + 1}. ${match.contact.name} (${match.contact.phone})\n"
-                              }
-                              statusDescTv.text = descText.trim()
-                              speakOut(speechText)
-                          }
+                      if (matchedContact != null) {
+                          statusTitleTv.text = "Calling ${matchedContact.name}..."
+                          statusDescTv.text = matchedContact.phone
+                          speakOut("Calling ${matchedContact.name}")
+                          makePhoneCall(matchedContact.phone)
+                      } else {
+                          statusTitleTv.text = "Not found"
+                          statusDescTv.text = "\"$spokenText\" nahi mila."
+                          speakOut("$spokenText naam ka contact nahi mila.")
                       }
                   } catch (e: Exception) {
                       statusTitleTv.text = "AI Assistant is Ready"
-                      statusDescTv.text = "Safe reset applied. Try again."
-                  }
-              }
-
-              private fun universalPhoneticTransform(input: String): String {
-                  var text = input.lowercase(Locale.ROOT)
-                  text = text.replace("kh", "k")
-                      .replace("ph", "f")
-                      .replace("z", "j")
-                      .replace("sh", "s")
-                      .replace("w", "v")
-                      .replace("ee", "i")
-                      .replace("oo", "u")
-                  text = text.replace(Regex("[^a-z0-9\\s]"), "")
-                  return text.trim()
-              }
-
-              private fun dialFromLastShownList(index: Int, label: String) {
-                  if (lastShownList.isNotEmpty() && index < lastShownList.size) {
-                      val target = lastShownList[index]
-                      statusTitleTv.text = "Calling $label: ${target.name}"
-                      statusDescTv.text = target.phone
-                      speakOut("Calling ${target.name}")
-                      makePhoneCall(target.phone)
-                      lastShownList = emptyList()
-                  } else {
-                      Toast.makeText(this, "No active list available.", Toast.LENGTH_SHORT).show()
-                      speakOut("कोई सूची उपलब्ध नहीं है।")
+                      statusDescTv.text = "Try again."
                   }
               }
 
@@ -654,18 +496,10 @@ jobs:
 
               private fun makePhoneCall(phoneNumber: String) {
                   try {
-                      val telephonyManager = getSystemService(TELEPHONY_SERVICE) as? TelephonyManager
-                      if (telephonyManager?.callState == TelephonyManager.CALL_STATE_OFFHOOK) {
-                          Toast.makeText(this, "Call already in progress.", Toast.LENGTH_SHORT).show()
-                          return
-                      }
-
                       if (::textToSpeech.isInitialized) {
                           textToSpeech.stop()
                       }
-                      
                       moveTaskToBack(true)
-
                       val intent = Intent(Intent.ACTION_CALL).apply {
                           data = Uri.parse("tel:$phoneNumber")
                       }
@@ -678,7 +512,7 @@ jobs:
                           startActivity(dialIntent)
                       }
                   } catch (e: Exception) {
-                      Toast.makeText(this, "Call error. Check permissions.", Toast.LENGTH_SHORT).show()
+                      Toast.makeText(this, "Call error.", Toast.LENGTH_SHORT).show()
                   }
               }
 
