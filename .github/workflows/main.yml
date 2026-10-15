@@ -75,8 +75,8 @@ jobs:
                   applicationId "com.zeeshan.micassistant"
                   minSdk 26
                   targetSdk 34
-                  versionCode 800
-                  versionName "800.0"
+                  versionCode 1000
+                  versionName "1000.0"
               }
               buildTypes { release { minifyEnabled false } }
               compileOptions {
@@ -223,7 +223,7 @@ jobs:
                   <TextView
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="⚡ Claude Pro-Max AI Voice Engine ⚡"
+                      android:text="⚡ Universal Smart Disambiguation Engine ⚡"
                       android:textColor="#38BDF8"
                       android:textSize="13sp"
                       android:textStyle="bold" />
@@ -262,387 +262,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: Write TrilingualVoiceMatcher.kt
-        run: |
-          cat > app/src/main/java/com/zeeshan/micassistant/TrilingualVoiceMatcher.kt <<'EOF'
-          package com.zeeshan.micassistant
-
-          import android.Manifest
-          import android.content.Context
-          import android.content.pm.PackageManager
-          import android.icu.text.Transliterator
-          import android.provider.CallLog
-          import android.provider.ContactsContract.CommonDataKinds.Phone
-          import androidx.core.content.ContextCompat
-          import java.text.Normalizer
-          import java.util.Locale
-
-          data class Key(val cons: String, val vow: String, val raw: String)
-
-          data class PhoneEntry(val number: String, val digits10: String)
-
-          data class Person(
-              val contactId: Long,
-              val displayName: String,
-              val numbers: List<PhoneEntry>,
-              val tokens: List<Key>,
-              val recent: Boolean
-          ) {
-              val dialNumber: String get() = numbers[0].number
-          }
-
-          enum class Strength { FULL, PARTIAL, WEAK }
-
-          data class Candidate(val person: Person, val strength: Strength, val score: Double)
-
-          sealed class Dialog {
-              object Idle : Dialog()
-              data class Confirm(val person: Person, val at: Long) : Dialog()
-              data class Choose(val options: List<Person>, val at: Long) : Dialog()
-          }
-
-          data class Outcome(
-              val next: Dialog,
-              val title: String,
-              val desc: String,
-              val speak: String,
-              val dialNumber: String? = null,
-              val dialLabel: String? = null
-          )
-
-          private data class Row(val id: Long, val name: String, val number: String, val primary: Boolean)
-
-          object TrilingualVoiceMatcher {
-
-              const val DIALOG_TIMEOUT_MS = 20_000L
-
-              private const val FULL_TOKEN = 0.82
-              private const val WEAK_TOKEN = 0.65
-              private const val MIN_SUGGEST = 0.45
-              private const val MAX_OPTIONS = 3
-
-              private val YES = setOf(
-                  "haan", "han", "ha", "ji", "yes", "yeah", "ok", "okay",
-                  "theek", "thik", "karo", "kar", "kardo", "dedo", "call"
-              )
-              private val NO = setOf("nahi", "nahin", "no", "nope", "mat")
-              private val CANCEL = setOf("cancel", "stop", "ruko", "band", "chodo", "chhodo")
-              private val DIAL_VERBS = setOf("call", "dial", "phone", "lagao", "milao", "karo")
-
-              private val ORDINAL = mapOf(
-                  "1" to 0, "one" to 0, "won" to 0, "first" to 0, "pehla" to 0, "pehle" to 0,
-                  "pahla" to 0, "pehli" to 0,
-                  "2" to 1, "two" to 1, "to" to 1, "too" to 1, "do" to 1, "second" to 1,
-                  "doosra" to 1, "dusra" to 1, "doosre" to 1, "dusre" to 1,
-                  "3" to 2, "three" to 2, "tree" to 2, "third" to 2, "teesra" to 2, "tisra" to 2,
-                  "teesre" to 2, "tin" to 2, "teen" to 2
-              )
-              private val ORDINAL_FILLER = setOf("number", "no", "naam", "wala", "wali", "wale", "option")
-              private val WORDS = listOf("number one", "number two", "number three")
-
-              private val STOP = setOf(
-                  "call", "dial", "phone", "number", "please", "mujhe", "mere", "pe", "se", "ki",
-                  "ka", "ke", "ko", "kar", "karo", "kro", "karna", "krna", "karen", "karein", "kare",
-                  "lagao", "milao", "baat", "do", "wala", "wali", "wale"
-              )
-
-              private val DIGRAPHS = listOf(
-                  "tch" to "ch", "ck" to "k", "ph" to "f", "gh" to "g", "kh" to "k", "bh" to "b",
-                  "dh" to "d", "th" to "t", "sh" to "s", "ch" to "c", "zh" to "j", "wh" to "w",
-                  "ee" to "i", "oo" to "u"
-              )
-
-              private val NON_MARK = Regex("\\p{Mn}+")
-              private val NON_ALNUM = Regex("[^a-z0-9]+")
-              private val SEP = Regex("\\s+")
-              private val VOWEL = Regex("[aeiouy]")
-              private val SOFT_C = Regex("c(?=[eiy])")
-              private val REPEAT = Regex("(.)\\1+")
-              private val PAREN = Regex("\\s*\\(.*?\\)")
-
-              private val translit: ThreadLocal<Transliterator> =
-                  ThreadLocal.withInitial { Transliterator.getInstance("Any-Latin; Latin-ASCII") }
-
-              fun normalize(raw: String): String {
-                  val folded = StringBuilder(raw.length)
-                  for (ch in raw) {
-                      if (Character.isDigit(ch)) folded.append('0' + Character.digit(ch, 10))
-                      else folded.append(ch)
-                  }
-                  val latin = translit.get()!!.transliterate(folded.toString().lowercase(Locale.ROOT))
-                  return Normalizer.normalize(latin, Normalizer.Form.NFD)
-                      .replace(NON_MARK, "")
-                      .lowercase(Locale.ROOT)
-                      .replace(NON_ALNUM, " ")
-                      .trim()
-              }
-
-              private fun collapse(s: String) = s.replace(REPEAT, "\$1")
-
-              fun keyOf(token: String): Key {
-                  var s = token
-                  for ((a, b) in DIGRAPHS) s = s.replace(a, b)
-                  s = s.replace(SOFT_C, "s")
-                      .replace('c', 'k').replace('q', 'k').replace('x', 'k')
-                      .replace('z', 'j').replace('w', 'v').replace("h", "")
-                  val cons = collapse(s.replace(VOWEL, ""))
-                  var vow = collapse(s.replace(VOWEL, "a"))
-                  if (vow.length > 1 && vow.endsWith('a')) vow = vow.dropLast(1)
-                  return Key(cons, vow, token)
-              }
-
-              private fun nameKeys(name: String): List<Key> =
-                  normalize(name).split(SEP).filter { it.length > 1 }.map(::keyOf)
-
-              private fun queryKeys(text: String): List<Key> =
-                  normalize(text).split(SEP).filter { it.length > 1 && it !in STOP }.map(::keyOf)
-
-              private fun lev(a: String, b: String): Int {
-                  if (a == b) return 0
-                  var prev = IntArray(b.length + 1) { it }
-                  var cur = IntArray(b.length + 1)
-                  for (i in 1..a.length) {
-                      cur[0] = i
-                      for (j in 1..b.length) {
-                          val cost = if (a[i - 1] == b[j - 1]) 0 else 1
-                          cur[j] = minOf(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
-                      }
-                      val t = prev; prev = cur; cur = t
-                  }
-                  return prev[b.length]
-              }
-
-              private fun tokenSim(q: Key, n: Key): Double {
-                  if (q.cons == n.cons && q.vow == n.vow) return 1.0
-                  if (minOf(q.cons.length, n.cons.length) <= 2) return 0.0
-                  val c = 1.0 - lev(q.cons, n.cons).toDouble() / maxOf(q.cons.length, n.cons.length)
-                  val v = 1.0 - lev(q.vow, n.vow).toDouble() / maxOf(q.vow.length, n.vow.length, 1)
-                  return 0.6 * c + 0.4 * v
-              }
-
-              private fun isFullPair(s: Double, a: Key, b: Key): Boolean =
-                  s >= FULL_TOKEN &&
-                      (a.raw == b.raw || (!a.raw.startsWith(b.raw) && !b.raw.startsWith(a.raw)))
-
-              private fun classify(query: List<Key>, name: List<Key>): Pair<Strength, Double>? {
-                  if (query.isEmpty() || name.isEmpty()) return null
-                  val pairs = ArrayList<Triple<Double, Int, Int>>()
-                  for (qi in query.indices) for (ni in name.indices) {
-                      val s = tokenSim(query[qi], name[ni])
-                      if (s >= WEAK_TOKEN) pairs.add(Triple(s, qi, ni))
-                  }
-                  if (pairs.isEmpty()) return null
-                  pairs.sortByDescending { it.first }
-
-                  val qUsed = BooleanArray(query.size)
-                  val nUsed = BooleanArray(name.size)
-                  var sum = 0.0
-                  var matched = 0
-                  var allSolid = true
-                  var allFull = true
-                  for ((s, qi, ni) in pairs) {
-                      if (qUsed[qi] || nUsed[ni]) continue
-                      qUsed[qi] = true; nUsed[ni] = true
-                      matched++; sum += s
-                      if (s < FULL_TOKEN) allSolid = false
-                      if (!isFullPair(s, query[qi], name[ni])) allFull = false
-                  }
-
-                  val covered = qUsed.all { it }
-                  val strength = when {
-                      !covered || !allSolid -> Strength.WEAK
-                      matched == name.size && allFull -> Strength.FULL
-                      else -> Strength.PARTIAL
-                  }
-                  return strength to sum / maxOf(query.size, name.size)
-              }
-
-              fun candidates(utterance: String, people: List<Person>): List<Candidate> {
-                  val query = queryKeys(utterance)
-                  if (query.isEmpty()) return emptyList()
-                  val out = ArrayList<Candidate>()
-                  for (p in people) {
-                      val (strength, score) = classify(query, p.tokens) ?: continue
-                      out.add(Candidate(p, strength, score + if (p.recent) 0.02 else 0.0))
-                  }
-                  return out.sortedWith(compareBy<Candidate>({ it.strength.ordinal }, { -it.score }))
-              }
-
-              private fun mergeAlternatives(alts: List<String>, people: List<Person>): List<Candidate> {
-                  val best = LinkedHashMap<Long, Candidate>()
-                  for (alt in alts) for (c in candidates(alt, people)) {
-                      val prev = best[c.person.contactId]
-                      if (prev == null || rank(c) > rank(prev)) best[c.person.contactId] = c
-                  }
-                  return best.values.sortedWith(compareBy<Candidate>({ it.strength.ordinal }, { -it.score }))
-              }
-
-              private fun rank(c: Candidate): Double = (2 - c.strength.ordinal) * 10.0 + c.score
-
-              fun decide(alts: List<String>, people: List<Person>, dialogIn: Dialog, now: Long): Outcome {
-                  val heard = alts.map { it.trim() }.filter { it.isNotEmpty() }
-                  if (heard.isEmpty()) {
-                      return idle("AI Assistant is Ready", "Kuch sunai nahi diya.", "Kuch sunai nahi diya. Dobara boliye.")
-                  }
-                  val primary = heard[0]
-                  val words = normalize(primary).split(SEP).filter { it.isNotEmpty() }
-                  val dialog = live(dialogIn, now)
-
-                  when (dialog) {
-                      is Dialog.Confirm -> {
-                          if (words.any { it in YES }) return callPerson(dialog.person)
-                          if (words.any { it in NO || it in CANCEL }) return cancelled()
-                      }
-                      is Dialog.Choose -> {
-                          ordinalIndex(words)?.let { i ->
-                              val p = dialog.options.getOrNull(i)
-                              return if (p != null) callPerson(p)
-                              else idle("Which one?", "${dialog.options.size} mein se boliye.",
-                                  "Sirf ${dialog.options.size} options hain. Number bolein.")
-                          }
-                          if (words.any { it in NO || it in CANCEL }) return cancelled()
-                      }
-                      Dialog.Idle -> {}
-                  }
-
-                  if (words.size <= 4 && words.any { it in CANCEL }) return cancelled()
-
-                  if (dialog is Dialog.Idle && words.size <= 3 && ordinalIndex(words) != null &&
-                      words.all { it in ORDINAL || it in ORDINAL_FILLER }) {
-                      return idle("AI Assistant is Ready", "Pehle koi naam boliye.",
-                          "Pehle koi naam boliye, phir number bolein.")
-                  }
-
-                  val digitWords = words.filter { w -> w.all { it.isDigit() } }
-                  val digits = digitWords.joinToString("")
-                  val hasVerb = words.any { it in DIAL_VERBS }
-                  if (digits.length in 7..15 && (hasVerb || digitWords.size == words.size)) {
-                      return Outcome(Dialog.Idle, "Dialing $digits...", digits,
-                          "Number dial kar raha hoon", digits, digits)
-                  }
-
-                  val cands = mergeAlternatives(heard.take(3), people)
-                  if (cands.isEmpty()) {
-                      return idle("No contact found", "\"$primary\" naam ka contact nahi mila.",
-                          "$primary naam ka koi contact nahi mila.")
-                  }
-
-                  val fulls = cands.filter { it.strength == Strength.FULL }
-                  if (fulls.size == 1) return callPerson(fulls[0].person)
-
-                  if (fulls.size > 1) {
-                      return choose(fulls.take(MAX_OPTIONS).map { it.person }, "Multiple contacts found.", now)
-                  }
-
-                  val sugg = cands.filter { it.score >= MIN_SUGGEST }.take(MAX_OPTIONS)
-                  if (sugg.isEmpty()) {
-                      return idle("No contact found", "\"$primary\" naam ka contact nahi mila.",
-                          "$primary naam ka koi contact nahi mila.")
-                  }
-                  if (sugg.size == 1) {
-                      val p = sugg[0].person
-                      return Outcome(
-                          Dialog.Confirm(p, now),
-                          "Confirm?",
-                          "${p.displayName} ko call karein?",
-                          "$primary naam ka koi contact nahi mila, kya aap ${p.displayName} ko call karna chahte hain? Haan ya nahi bolein."
-                      )
-                  }
-                  return choose(sugg.map { it.person }, "$primary naam ka exact contact nahi mila.", now)
-              }
-
-              private fun live(d: Dialog, now: Long): Dialog {
-                  val at = when (d) {
-                      Dialog.Idle -> return Dialog.Idle
-                      is Dialog.Confirm -> d.at
-                      is Dialog.Choose -> d.at
-                  }
-                  return if (now - at <= DIALOG_TIMEOUT_MS) d else Dialog.Idle
-              }
-
-              private fun ordinalIndex(words: List<String>): Int? {
-                  if (words.size > 4) return null
-                  return words.firstNotNullOfOrNull { ORDINAL[it] }
-              }
-
-              private fun idle(title: String, desc: String, speak: String) =
-                  Outcome(Dialog.Idle, title, desc, speak)
-
-              private fun cancelled() =
-                  Outcome(Dialog.Idle, "AI Assistant is Ready", "Search cancelled.", "Theek hai, cancel kar diya.")
-
-              private fun callPerson(p: Person) = Outcome(
-                  Dialog.Idle,
-                  "Calling ${p.displayName}...",
-                  p.dialNumber,
-                  "${p.displayName} ko call kar raha hoon",
-                  p.dialNumber,
-                  p.displayName
-              )
-
-              private fun choose(opts: List<Person>, lead: String, now: Long): Outcome {
-                  val spoken = opts.mapIndexed { i, p -> "${WORDS[i]} for ${p.displayName}" }
-                      .joinToString(", or ")
-                  val desc = opts.mapIndexed { i, p -> "${i + 1}. ${p.displayName} (${p.dialNumber})" }
-                      .joinToString("\n")
-                  return Outcome(Dialog.Choose(opts, now), "Which one?", desc, "$lead Say $spoken.")
-              }
-
-              fun loadPeople(ctx: Context): List<Person> {
-                  if (!has(ctx, Manifest.permission.READ_CONTACTS)) return emptyList()
-                  val cr = ctx.contentResolver
-
-                  val recent = HashSet<String>()
-                  if (has(ctx, Manifest.permission.READ_CALL_LOG)) {
-                      cr.query(
-                          CallLog.Calls.CONTENT_URI, arrayOf(CallLog.Calls.NUMBER),
-                          null, null, "${CallLog.Calls.DATE} DESC"
-                      )?.use { c ->
-                          val i = c.getColumnIndexOrThrow(CallLog.Calls.NUMBER)
-                          var n = 0
-                          while (n < 50 && c.moveToNext()) {
-                              val d = digits10(c.getString(i).orEmpty())
-                              if (d.length >= 7) recent.add(d)
-                              n++
-                          }
-                      }
-                  }
-
-                  val rows = ArrayList<Row>()
-                  cr.query(
-                      Phone.CONTENT_URI,
-                      arrayOf(Phone.CONTACT_ID, Phone.DISPLAY_NAME, Phone.NUMBER, Phone.IS_PRIMARY),
-                      null, null, null
-                  )?.use { c ->
-                      val iId = c.getColumnIndexOrThrow(Phone.CONTACT_ID)
-                      val iName = c.getColumnIndexOrThrow(Phone.DISPLAY_NAME)
-                      val iNum = c.getColumnIndexOrThrow(Phone.NUMBER)
-                      val iPri = c.getColumnIndexOrThrow(Phone.IS_PRIMARY)
-                      while (c.moveToNext()) {
-                          val name = c.getString(iName).orEmpty().replace(PAREN, "").trim()
-                          val num = c.getString(iNum).orEmpty().trim()
-                          if (name.isEmpty() || digits10(num).length < 7) continue
-                          rows.add(Row(c.getLong(iId), name, num, c.getInt(iPri) != 0))
-                      }
-                  }
-
-                  return rows.groupBy { it.id }.map { (id, list) ->
-                      val name = list[0].name
-                      val numbers = list.sortedByDescending { it.primary }
-                          .distinctBy { digits10(it.number) }
-                          .map { PhoneEntry(it.number, digits10(it.number)) }
-                      Person(id, name, numbers, nameKeys(name), numbers.any { it.digits10 in recent })
-                  }
-              }
-
-              private fun digits10(s: String) = s.filter { it.isDigit() }.takeLast(10)
-
-              private fun has(ctx: Context, p: String) =
-                  ContextCompat.checkSelfPermission(ctx, p) == PackageManager.PERMISSION_GRANTED
-          }
-          EOF
-
-      - name: Write MainActivity.kt
+      - name: Write Smart MainActivity.kt
         run: |
           cat > app/src/main/java/com/zeeshan/micassistant/MainActivity.kt <<'EOF'
           package com.zeeshan.micassistant
@@ -651,52 +271,46 @@ jobs:
           import android.content.Context
           import android.content.Intent
           import android.content.pm.PackageManager
+          import android.database.Cursor
           import android.net.Uri
           import android.os.Bundle
-          import android.os.Handler
-          import android.os.Looper
           import android.os.VibrationEffect
           import android.os.Vibrator
+          import android.provider.CallLog
+          import android.provider.ContactsContract
           import android.speech.RecognitionListener
           import android.speech.RecognizerIntent
           import android.speech.SpeechRecognizer
           import android.speech.tts.TextToSpeech
+          import android.telephony.TelephonyManager
           import android.widget.ImageButton
           import android.widget.TextView
+          import android.widget.Toast
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
-          import java.util.Locale
-          import java.util.concurrent.ExecutorService
-          import java.util.concurrent.Executors
+          import java.util.*
+
+          data class ContactItem(val name: String, val phone: String, var recentCall: Boolean = false)
+          data class ScoredMatch(val contact: ContactItem, val score: Int)
 
           class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
-
-              companion object {
-                  private const val PERM_REQ = 101
-                  private val REQUIRED = arrayOf(
-                      Manifest.permission.READ_CONTACTS,
-                      Manifest.permission.READ_CALL_LOG,
-                      Manifest.permission.CALL_PHONE,
-                      Manifest.permission.RECORD_AUDIO
-                  )
-              }
 
               private lateinit var btnMic: ImageButton
               private lateinit var statusTitleTv: TextView
               private lateinit var statusDescTv: TextView
               private lateinit var waveTv: TextView
 
-              private val worker: ExecutorService = Executors.newSingleThreadExecutor()
-              private val ui = Handler(Looper.getMainLooper())
-
               private var speechRecognizer: SpeechRecognizer? = null
-              private var tts: TextToSpeech? = null
-              private var ttsReady = false
-              private var dialog: Dialog = Dialog.Idle
-              private var requestSeq = 0
+              private lateinit var textToSpeech: TextToSpeech
 
-              @Volatile private var people: List<Person> = emptyList()
+              val allContacts = mutableListOf<ContactItem>()
+              val recentNumbers = mutableSetOf<String>()
+              var lastShownList = listOf<ContactItem>()
+
+              companion object {
+                  private const val PERMISSION_REQUEST_CODE = 101
+              }
 
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
@@ -707,209 +321,32 @@ jobs:
                   statusDescTv = findViewById(R.id.statusDescTv)
                   waveTv = findViewById(R.id.waveTv)
 
-                  tts = TextToSpeech(this, this)
+                  checkPermissions()
+                  syncAllDataSafely()
+
+                  textToSpeech = TextToSpeech(this, this)
+                  setupSpeechRecognizer()
 
                   btnMic.setOnClickListener {
                       triggerHaptic()
-                      startListening()
-                  }
-
-                  requestPermissionsIfNeeded()
-              }
-
-              override fun onResume() {
-                  super.onResume()
-                  if (people.isEmpty() && hasPerm(Manifest.permission.READ_CONTACTS)) reloadPeople()
-              }
-
-              override fun onRequestPermissionsResult(
-                  requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-              ) {
-                  super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-                  if (requestCode == PERM_REQ) reloadPeople()
-              }
-
-              private fun requestPermissionsIfNeeded() {
-                  val missing = REQUIRED.filter { !hasPerm(it) }.toTypedArray()
-                  if (missing.isNotEmpty()) ActivityCompat.requestPermissions(this, missing, PERM_REQ)
-              }
-
-              private fun reloadPeople() {
-                  val ctx: Context = applicationContext
-                  worker.execute {
-                      val list = try {
-                          TrilingualVoiceMatcher.loadPeople(ctx)
-                      } catch (e: SecurityException) {
-                          emptyList()
-                      }
-                      people = list
-                      ui.post {
-                          if (list.isEmpty()) show("Phonebook khaali hai", "Contacts ki permission dein.")
-                      }
+                      startListeningProcess()
                   }
               }
 
-              private val listener = object : RecognitionListener {
-                  override fun onReadyForSpeech(params: Bundle?) {
-                      show("Listening...", "Contact ka naam boliye")
-                      waveTv.text = " 🌈✨ ıllılıl llılıll ✨🌈 "
-                  }
-
-                  override fun onBeginningOfSpeech() {}
-                  override fun onRmsChanged(rmsdB: Float) {}
-                  override fun onBufferReceived(buffer: ByteArray?) {}
-
-                  override fun onEndOfSpeech() {
-                      show("Processing...", "")
-                  }
-
-                  override fun onError(error: Int) {
-                      resetMic()
-                      val noSpeech = error == SpeechRecognizer.ERROR_NO_MATCH ||
-                          error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
-                      show(
-                          "AI Assistant is Ready",
-                          if (noSpeech) "Kuch sunai nahi diya. Dobara boliye." else "Mic error. Dobara try karein."
+              private fun checkPermissions() {
+                  try {
+                      val permissions = arrayOf(
+                          Manifest.permission.READ_CONTACTS,
+                          Manifest.permission.READ_CALL_LOG,
+                          Manifest.permission.CALL_PHONE,
+                          Manifest.permission.RECORD_AUDIO,
+                          Manifest.permission.READ_PHONE_STATE
                       )
-                  }
-
-                  override fun onResults(results: Bundle?) {
-                      resetMic()
-                      val alts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
-                      handleUtterance(alts)
-                  }
-
-                  override fun onPartialResults(partialResults: Bundle?) {}
-                  override fun onEvent(eventType: Int, params: Bundle?) {}
-              }
-
-              private fun startListening() {
-                  if (!hasPerm(Manifest.permission.RECORD_AUDIO)) {
-                      requestPermissionsIfNeeded()
-                      return
-                  }
-                  tts?.stop()
-
-                  // 🔥 ULTRA-SMOOTH FIX: Destroy old instance safely and create a fresh SpeechRecognizer instance on every tap to eliminate ERROR_CLIENT and Dead Object states completely.
-                  try {
-                      speechRecognizer?.destroy()
-                  } catch (e: Exception) {}
-
-                  speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) {
-                      SpeechRecognizer.createSpeechRecognizer(this).also {
-                          it.setRecognitionListener(listener)
-                      }
-                  } else null
-
-                  val rec = speechRecognizer
-                  if (rec == null) {
-                      show("Speech engine unavailable", "Is device par speech recognition nahi hai.")
-                      return
-                  }
-
-                  btnMic.setBackgroundResource(R.drawable.circle_mic_active)
-                  try {
-                      rec.startListening(
-                          Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                              .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                              .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
-                              .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
-                              .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
-                      )
+                      ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
                   } catch (e: Exception) {
-                      resetMic()
-                      show("AI Assistant is Ready", "Mic start nahi ho paaya. Dobara try karein.")
+                      e.printStackTrace()
                   }
               }
-
-              private fun handleUtterance(alts: List<String>) {
-                  val seq = ++requestSeq
-                  val snapshotDialog = dialog
-                  val snapshotPeople = people
-                  val now = System.currentTimeMillis()
-                  worker.execute {
-                      val out = TrilingualVoiceMatcher.decide(alts, snapshotPeople, snapshotDialog, now)
-                      ui.post {
-                          if (seq == requestSeq) render(out)
-                      }
-                  }
-              }
-
-              private fun render(out: Outcome) {
-                  dialog = out.next
-                  show(out.title, out.desc)
-                  speak(out.speak)
-                  out.dialNumber?.let { placeCall(it) }
-              }
-
-              private fun placeCall(number: String) {
-                  val clean = number.filter { it.isDigit() || it == '+' }
-                  if (clean.isEmpty()) {
-                      show("Call failed", "Number khaali hai.")
-                      return
-                  }
-                  val uri = Uri.fromParts("tel", clean, null)
-                  val intent = if (hasPerm(Manifest.permission.CALL_PHONE)) {
-                      Intent(Intent.ACTION_CALL, uri)
-                  } else {
-                      Intent(Intent.ACTION_DIAL, uri)
-                  }
-                  try {
-                      startActivity(intent)
-                  } catch (e: Exception) {
-                      show("Call failed", "Dialer nahi khul paaya.")
-                  }
-              }
-
-              private fun speak(text: String) {
-                  if (ttsReady) tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "utt")
-              }
-
-              override fun onInit(status: Int) {
-                  ttsReady = status == TextToSpeech.SUCCESS
-                  if (ttsReady) {
-                      val r = tts?.setLanguage(Locale("en", "IN"))
-                      if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
-                          tts?.language = Locale.US
-                      }
-                  }
-              }
-
-              override fun onStop() {
-                  try {
-                      speechRecognizer?.cancel()
-                      speechRecognizer?.destroy()
-                  } catch (e: Exception) {}
-                  speechRecognizer = null
-                  tts?.stop()
-                  resetMic()
-                  super.onStop()
-              }
-
-              override fun onDestroy() {
-                  try {
-                      speechRecognizer?.destroy()
-                  } catch (e: Exception) {}
-                  speechRecognizer = null
-                  tts?.stop()
-                  tts?.shutdown()
-                  tts = null
-                  worker.shutdownNow()
-                  super.onDestroy()
-              }
-
-              private fun show(title: String, desc: String) {
-                  statusTitleTv.text = title
-                  statusDescTv.text = desc
-              }
-
-              private fun resetMic() {
-                  btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
-                  waveTv.text = " ıllılıl llılıll "
-              }
-
-              private fun hasPerm(p: String) =
-                  ContextCompat.checkSelfPermission(this, p) == PackageManager.PERMISSION_GRANTED
 
               private fun triggerHaptic() {
                   try {
@@ -917,11 +354,364 @@ jobs:
                       if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                           vibrator?.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
                       } else {
-                          @Suppress("DEPRECATION")
                           vibrator?.vibrate(50)
                       }
+                  } catch (e: Exception) {}
+              }
+
+              private fun syncAllDataSafely() {
+                  try {
+                      allContacts.clear()
+                      recentNumbers.clear()
+
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+                          val logCursor: Cursor? = contentResolver.query(
+                              CallLog.Calls.CONTENT_URI,
+                              arrayOf(CallLog.Calls.NUMBER),
+                              null, null, CallLog.Calls.DATE + " DESC"
+                          )
+                          logCursor?.let {
+                              val numIdx = it.getColumnIndex(CallLog.Calls.NUMBER)
+                              var count = 0
+                              while (it.moveToNext() && count < 30) {
+                                  val num = it.getString(numIdx) ?: ""
+                                  if (num.isNotEmpty()) recentNumbers.add(num)
+                                  count++
+                              }
+                              it.close()
+                          }
+                      }
+
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+                          val cursor: Cursor? = contentResolver.query(
+                              ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                              null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
+                          )
+                          cursor?.let {
+                              val nameIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                              val numIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                              while (it.moveToNext()) {
+                                  var name = it.getString(nameIdx) ?: ""
+                                  val num = it.getString(numIdx) ?: ""
+                                  if (name.isNotEmpty() && num.isNotEmpty()) {
+                                      name = name.replace(Regex("\\s*\\(.*?\\)", RegexOption.IGNORE_CASE), "").trim()
+                                      if (!allContacts.any { c -> c.phone == num }) {
+                                          val isRecent = recentNumbers.contains(num)
+                                          allContacts.add(ContactItem(name, num, isRecent))
+                                      }
+                                  }
+                              }
+                              it.close()
+                          }
+                      }
                   } catch (e: Exception) {
+                      e.printStackTrace()
                   }
+              }
+
+              private fun setupSpeechRecognizer() {
+                  try {
+                      if (SpeechRecognizer.isRecognitionAvailable(this)) {
+                          try {
+                              speechRecognizer?.destroy()
+                          } catch (e: Exception) {}
+
+                          speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+                          speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+                              override fun onReadyForSpeech(params: Bundle?) {
+                                  statusTitleTv.text = "Listening..."
+                                  statusDescTv.text = "Speak naturally..."
+                                  waveTv.text = " 🌈✨ ıllılıl llılıll ✨🌈 "
+                              }
+                              override fun onBeginningOfSpeech() {}
+                              override fun onRmsChanged(rmsdB: Float) {}
+                              override fun onBufferReceived(buffer: ByteArray?) {}
+                              override fun onEndOfSpeech() {
+                                  statusTitleTv.text = "Processing..."
+                                  statusDescTv.text = "Smart Disambiguation Engine Active..."
+                              }
+                              override fun onError(error: Int) {
+                                  resetMicState()
+                                  statusTitleTv.text = "AI Assistant is Ready"
+                                  statusDescTv.text = "Tap mic and speak."
+                              }
+                              override fun onResults(results: Bundle?) {
+                                  resetMicState()
+                                  val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                                  if (!matches.isNullOrEmpty()) {
+                                      processUniversalCommand(matches[0])
+                                  } else {
+                                      statusTitleTv.text = "No speech heard"
+                                      statusDescTv.text = "Speak clearly to dial."
+                                  }
+                              }
+                              override fun onPartialResults(partialResults: Bundle?) {}
+                              override fun onEvent(eventType: Int, params: Bundle?) {}
+                          })
+                      }
+                  } catch (e: Exception) {
+                      e.printStackTrace()
+                  }
+              }
+
+              private fun startListeningProcess() {
+                  try {
+                      if (::textToSpeech.isInitialized) {
+                          textToSpeech.stop()
+                      }
+
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                          btnMic.setBackgroundResource(R.drawable.circle_mic_active)
+                          if (speechRecognizer == null) {
+                              setupSpeechRecognizer()
+                          }
+                          val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                              putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                              putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
+                              putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+                          }
+                          speechRecognizer?.startListening(intent)
+                      } else {
+                          checkPermissions()
+                      }
+                  } catch (e: Exception) {
+                      resetMicState()
+                      Toast.makeText(this, "Microphone error. Try again.", Toast.LENGTH_SHORT).show()
+                  }
+              }
+
+              private fun resetMicState() {
+                  btnMic.setBackgroundResource(R.drawable.circle_mic_normal)
+                  waveTv.text = " ıllılıl llılıll "
+              }
+
+              // 🔥 SMART DISAMBIGUATION & SAFETY COMMAND PROCESSOR 🔥
+              private fun processUniversalCommand(spokenText: String) {
+                  try {
+                      val rawQuery = spokenText.trim()
+                      val cleanQuery = rawQuery.lowercase(Locale.ROOT)
+
+                      // 1. Emergency handling
+                      if (cleanQuery.contains("100") || cleanQuery.contains("112") || cleanQuery.contains("emergency")) {
+                          val num = if (cleanQuery.contains("112")) "112" else "100"
+                          statusTitleTv.text = "Calling Emergency..."
+                          statusDescTv.text = num
+                          speakOut("Calling Emergency")
+                          makePhoneCall(num)
+                          return
+                      }
+
+                      // 2. Cancel handling
+                      if (cleanQuery.contains("cancel") || cleanQuery.contains("band") || cleanQuery.contains("nahi") || cleanQuery.contains("नहीं")) {
+                          statusTitleTv.text = "AI Assistant is Ready"
+                          statusDescTv.text = "Search cancelled."
+                          speakOut("Cancelled.")
+                          lastShownList = emptyList()
+                          return
+                      }
+
+                      // 3. Selection from Active List (e.g. Number 1, Number 2)
+                      if (cleanQuery.contains("number 2") || cleanQuery.contains("दूसरा") || cleanQuery.contains("second") || cleanQuery.contains("दो नंबर")) {
+                          dialFromLastShownList(1, "Second contact")
+                          return
+                      }
+                      if (cleanQuery.contains("number 1") || cleanQuery.contains("पहला") || cleanQuery.contains("first") || cleanQuery.contains("एक नंबर")) {
+                          dialFromLastShownList(0, "First contact")
+                          return
+                      }
+                      if (cleanQuery.contains("number 3") || cleanQuery.contains("तीसरा") || cleanQuery.contains("third") || cleanQuery.contains("तीन नंबर")) {
+                          dialFromLastShownList(2, "Third contact")
+                          return
+                      }
+
+                      // Clean up action words like "call", "dial", "karo", etc. for matching
+                      val searchQuery = cleanQuery
+                          .replace("call", "")
+                          .replace("dial", "")
+                          .replace("phone", "")
+                          .replace("lagao", "")
+                          .replace("milao", "")
+                          .replace("karo", "")
+                          .replace("ko", "")
+                          .trim()
+
+                      val phoneticQuery = universalPhoneticTransform(searchQuery)
+                      val queryTokens = phoneticQuery.split("\\s+".toRegex()).filter { it.length > 1 }
+
+                      val scoredList = mutableListOf<ScoredMatch>()
+
+                      for (contact in allContacts) {
+                          val contactNameLower = contact.name.lowercase(Locale.ROOT)
+                          val phoneticContactName = universalPhoneticTransform(contact.name)
+                          var score = 0
+
+                          // Exact or Substring match
+                          if (contactNameLower == searchQuery || phoneticContactName == phoneticQuery) {
+                              score = 100
+                          } else if (contactNameLower.contains(searchQuery) || phoneticContactName.contains(phoneticQuery)) {
+                              score = 85
+                          } else if (queryTokens.isNotEmpty() && queryTokens.all { token -> phoneticContactName.contains(token) }) {
+                              score = 75
+                          } else if (queryTokens.isNotEmpty() && queryTokens.any { token -> phoneticContactName.contains(token) }) {
+                              score = 55
+                          }
+
+                          if (score > 0 && contact.recentCall) {
+                              score += 15
+                          }
+
+                          if (score > 0) {
+                              scoredList.add(ScoredMatch(contact, score))
+                          }
+                      }
+
+                      scoredList.sortByDescending { it.score }
+                      val bestMatches = scoredList.filter { it.score >= 50 }
+
+                      when {
+                          bestMatches.isEmpty() -> {
+                              statusTitleTv.text = "No contact found"
+                              statusDescTv.text = "No contact found for \"$rawQuery\""
+                              speakOut("No contact found for $rawQuery")
+                              lastShownList = emptyList()
+                          }
+                          // 🔥 MULTIPLE MATCHES CHECK: If multiple contacts match (e.g. Zeeshan Bagwan & Zeeshan Hussain), NEVER auto-dial! List them out.
+                          bestMatches.size > 1 && bestMatches[0].score < 100 -> {
+                              val topResults = bestMatches.take(3)
+                              lastShownList = topResults.map { it.contact }
+                              statusTitleTv.text = "Multiple matches found for \"$rawQuery\""
+                              var speechText = "एक से ज्यादा नाम मिले हैं। "
+                              var descText = ""
+                              topResults.forEachIndexed { idx, match ->
+                                  speechText += "नंबर ${idx + 1}: ${match.contact.name}. "
+                                  descText += "${idx + 1}. ${match.contact.name} (${match.contact.phone})\n"
+                              }
+                              statusDescTv.text = descText.trim()
+                              speakOut(speechText)
+                          }
+                          // Single high-confidence match or exact match
+                          bestMatches.size == 1 || bestMatches[0].score >= 95 -> {
+                              val target = bestMatches[0].contact
+                              val contactNameLower = target.name.lowercase(Locale.ROOT)
+                              
+                              // 🔥 PHONETIC SAFETY: If user said something like "Kala" and contact is "Khala" (phonetic approximation, not exact spelling), DO NOT auto-dial! Show suggestion and ask confirmation.
+                              if (searchQuery.isNotEmpty() && !contactNameLower.contains(searchQuery) && universalPhoneticTransform(target.name) != phoneticQuery) {
+                                  lastShownList = listOf(target)
+                                  statusTitleTv.text = "Did you mean ${target.name}?"
+                                  statusDescTv.text = "Exact match nahi mila. Kya ${target.name} ko call karein?"
+                                  speakOut("${searchQuery} नाम नहीं है, क्या ${target.name} को कॉल करें? हां या ना बोलें।")
+                              } else {
+                                  // Safe direct call for exact / unique match
+                                  statusTitleTv.text = "Calling ${target.name}..."
+                                  statusDescTv.text = target.phone
+                                  speakOut("Calling ${target.name}")
+                                  makePhoneCall(target.phone)
+                              }
+                          }
+                          else -> {
+                              // Multiple or ambiguous matches -> Show list
+                              val topResults = bestMatches.take(3)
+                              lastShownList = topResults.map { it.contact }
+                              statusTitleTv.text = "Multiple options found"
+                              var speechText = "कई नाम मिले हैं। "
+                              var descText = ""
+                              topResults.forEachIndexed { idx, match ->
+                                  speechText += "नंबर ${idx + 1}: ${match.contact.name}. "
+                                  descText += "${idx + 1}. ${match.contact.name} (${match.contact.phone})\n"
+                              }
+                              statusDescTv.text = descText.trim()
+                              speakOut(speechText)
+                          }
+                      }
+                  } catch (e: Exception) {
+                      statusTitleTv.text = "AI Assistant is Ready"
+                      statusDescTv.text = "Safe reset applied. Try again."
+                  }
+              }
+
+              private fun universalPhoneticTransform(input: String): String {
+                  var text = input.lowercase(Locale.ROOT)
+                  text = text.replace("kh", "k")
+                      .replace("ph", "f")
+                      .replace("z", "j")
+                      .replace("sh", "s")
+                      .replace("w", "v")
+                      .replace("ee", "i")
+                      .replace("oo", "u")
+                  text = text.replace(Regex("[^a-z0-9\\s]"), "")
+                  return text.trim()
+              }
+
+              private fun dialFromLastShownList(index: Int, label: String) {
+                  if (lastShownList.isNotEmpty() && index < lastShownList.size) {
+                      val target = lastShownList[index]
+                      statusTitleTv.text = "Calling $label: ${target.name}"
+                      statusDescTv.text = target.phone
+                      speakOut("Calling ${target.name}")
+                      makePhoneCall(target.phone)
+                      lastShownList = emptyList()
+                  } else {
+                      Toast.makeText(this, "No active list available.", Toast.LENGTH_SHORT).show()
+                      speakOut("कोई सूची उपलब्ध नहीं है।")
+                  }
+              }
+
+              private fun speakOut(text: String) {
+                  try {
+                      textToSpeech.setSpeechRate(1.0f)
+                      textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
+                  } catch (e: Exception) {}
+              }
+
+              private fun makePhoneCall(phoneNumber: String) {
+                  try {
+                      val telephonyManager = getSystemService(TELEPHONY_SERVICE) as? TelephonyManager
+                      if (telephonyManager?.callState == TelephonyManager.CALL_STATE_OFFHOOK) {
+                          Toast.makeText(this, "Call already in progress.", Toast.LENGTH_SHORT).show()
+                          return
+                      }
+
+                      if (::textToSpeech.isInitialized) {
+                          textToSpeech.stop()
+                      }
+                      
+                      moveTaskToBack(true)
+
+                      val intent = Intent(Intent.ACTION_CALL).apply {
+                          data = Uri.parse("tel:$phoneNumber")
+                      }
+                      if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                          startActivity(intent)
+                      } else {
+                          val dialIntent = Intent(Intent.ACTION_DIAL).apply {
+                              data = Uri.parse("tel:$phoneNumber")
+                          }
+                          startActivity(dialIntent)
+                      }
+                  } catch (e: Exception) {
+                      Toast.makeText(this, "Call error. Check permissions.", Toast.LENGTH_SHORT).show()
+                  }
+              }
+
+              override fun onInit(status: Int) {
+                  if (status == TextToSpeech.SUCCESS) {
+                      try {
+                          textToSpeech.language = Locale("en", "IN")
+                      } catch (e: Exception) {}
+                  }
+              }
+
+              override onDestroy() {
+                  try {
+                      speechRecognizer?.destroy()
+                  } catch (e: Exception) {}
+                  try {
+                      if (::textToSpeech.isInitialized) {
+                          textToSpeech.stop()
+                          textToSpeech.shutdown()
+                      }
+                  } catch (e: Exception) {}
+                  super.onDestroy()
               }
           }
           EOF
