@@ -40,17 +40,14 @@ jobs:
           mkdir -p app/src/main/assets
           mkdir -p app/src/main/cpp
 
-      - name: 5. Download C++ AI Brain (brain.cpp) from GitHub Raw Link
+      - name: 5. Copy Brain File from Repository Folder
         run: |
           echo "=================================================="
-          echo "📥 Downloading C++ Brain from Server Raw Link..."
+          echo "📂 Copying brain.cpp from local repository path..."
           echo "=================================================="
-          # आपकी दी गई सटीक डायरेक्ट Raw लिंक
-          BRAIN_RAW_URL="https://github.com/zeeshanhusain717-collab/zeeshan-ai-engine/raw/refs/heads/main/app%20/%20src%20/%20main%20/%20cpp%20/%20z2ai%20/brain%20.%20cpp"
-          
-          curl -L -o app/src/main/cpp/brain.cpp "$BRAIN_RAW_URL"
-          
-          echo "✅ C++ Brain downloaded successfully into cpp folder!"
+          # चूँकि brain.cpp आपके इसी रिपॉजिटरी के अंदर z2ai फोल्डर में है, उसे सीधे cpp फोल्डर में कॉपी करें
+          cp app/src/main/cpp/z2ai/brain.cpp app/src/main/cpp/brain.cpp
+          echo "✅ Brain file copied successfully into cpp folder!"
           ls -lh app/src/main/cpp/brain.cpp
 
       - name: 6. Write gradle.properties
