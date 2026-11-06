@@ -45,8 +45,8 @@ jobs:
           echo "=================================================="
           echo "📥 Downloading C++ Brain from Server Raw Link..."
           echo "=================================================="
-          # यहाँ आपकी C++ फाइल का डायरेक्ट Raw Download Link है
-          BRAIN_RAW_URL="https://raw.githubusercontent.com/zeeshanhusain717-collab/zeeshan-ai-engine/main/app/src/main/cpp/z2ai/brain.cpp"
+          # आपकी दी गई सटीक डायरेक्ट Raw लिंक
+          BRAIN_RAW_URL="https://github.com/zeeshanhusain717-collab/zeeshan-ai-engine/raw/refs/heads/main/app%20/%20src%20/%20main%20/%20cpp%20/%20z2ai%20/brain%20.%20cpp"
           
           curl -L -o app/src/main/cpp/brain.cpp "$BRAIN_RAW_URL"
           
@@ -440,7 +440,7 @@ jobs:
                       }
                       chatContainer.addView(msgView)
                       scrollToBottom()
-                  }CATCH (e: Exception) {
+                  } catch (e: Exception) {
                       e.printStackTrace()
                   }
               }
